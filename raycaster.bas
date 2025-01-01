@@ -98,8 +98,8 @@ DIM map_z AS WORD
 DIM angle AS INT = 0
 
 PROCEDURE event_handler
-	DIM new_pos_x, new_pos_y, old_dir_x, old_dir_y, old_plane_x AS INT
-	DIM new_map_x, new_map_y AS BYTE
+	DIM new_pos_x  AS INT, new_pos_y  AS INT, old_dir_x  AS INT, old_dir_y  AS INT, old_plane_x AS INT
+	DIM new_map_x AS BYTE, new_map_y AS BYTE
 	DIM compute_dir AS BYTE = FALSE
 	DIM key AS STRING
 	DIM map_pos AS WORD
@@ -159,6 +159,7 @@ PROCEDURE raycaster
 	DIM map_item AS BYTE
 	DIM color AS BYTE = 0
 	DIM step_x AS WORD, step_y AS WORD
+	DIM divide AS BYTE
 
 	REM calculate ray position and direction
 	
@@ -192,17 +193,19 @@ PROCEDURE raycaster
 		    v1 = 255 - v1
 			delta_dist_x = table_div_4096(ray_dir_x)
 		ENDIF
-		IF delta_dist_x >= $0100 THEN
-			temp_int = delta_dist_x \ 16
-			v2 = temp_int
-			side_dist_x = v1 * v2
-			side_dist_x = side_dist_x \ 16
-		ELSE
-			v2 = delta_dist_x
-			side_dist_x = v1 * v2
-			side_dist_x = side_dist_x \ 256
-		ENDIF
-	
+       	REM IF delta_dist_x >= $0100 THEN
+		REM    temp_int = delta_dist_x \ 16
+		REM    v2 = temp_int
+		REM    side_dist_x = v1 * v2
+		REM    side_dist_x = side_dist_x \ 16
+   		REM ELSE
+		REM    v2 = delta_dist_x
+		REM    side_dist_x = v1 * v2
+		REM    side_dist_x = side_dist_x \ 256
+	   	REM ENDIF
+	   	side_dist_x = (delta_dist_x * v1) \ 256
+
+
 	    REM length of ray from current position to next x or y-side
 		REM  8 bits poids faible de pos_y
 		v1 = pos_y
@@ -214,18 +217,18 @@ PROCEDURE raycaster
 	        v1 = 255 - v1
 	    	delta_dist_y = table_div_4096(ray_dir_y)
 		ENDIF
-		IF delta_dist_y >= $0100 THEN
-			temp_int = delta_dist_y \ 16
-			v2 = temp_int
-			side_dist_y = v1 * v2
-			side_dist_y = side_dist_y \  16
-		ELSE
-			v2 = delta_dist_y
-			side_dist_y = v1 * v2
-			side_dist_y = side_dist_y \  256
-		ENDIF
+       	REM IF delta_dist_y >= $0100 THEN
+		REM    temp_int = delta_dist_y \ 16
+		REM    v2 = temp_int
+		REM    side_dist_y = v1 * v2
+		REM    side_dist_y = side_dist_y \ 16
+   		REM ELSE
+		REM    v2 = delta_dist_y
+		REM    side_dist_y = v1 * v2
+		REM    side_dist_y = side_dist_y \ 256
+	   	REM ENDIF
+	   	side_dist_y = (delta_dist_y * v1) \ 256
 
-		
 	    REM perform DDA
 	    map_pointer = map_pointer_0
 	    WHILE PEEK(map_pointer) = 0
@@ -253,14 +256,7 @@ PROCEDURE raycaster
 	    REM choose wall color
 	    REM ColorRGB color;
 	    map_item = PEEK(map_pointer)
-	    
-	    REM IF map_item < 5 THEN
-	    REM     color = colors(map_item) + side
-	    REM ELSE
-	    REM     color = default_color + side
-	    REM ENDIF
 	    color = (map_item ** 2) + side
-	    
 		    
 	    line_height_array(camera_x) = table_dist(perp_wall_dist)
 	    color_array(camera_x) = color
@@ -429,7 +425,7 @@ END PROCEDURE
 
 
 PROCEDURE render_map
-	DIM x,y AS BYTE 
+	DIM x AS BYTE,y AS BYTE 
 	DIM ptr AS WORD
 	
 	ptr = VARPTR(world_map)
@@ -445,27 +441,28 @@ PROCEDURE render_map
 END PROCEDURE
 
 PROCEDURE build_table_dist
-	DIM dist AS WORD, line_height AS WORD
-	table_dist(0) = screen_height \ 2
+	DIM dist AS WORD, line_height_w AS WORD
+	DIM max_height AS WORD
+	
+	max_height = screen_height \ 2
+	table_dist(0) = max_height
 	FOR dist = 1 TO max_dist-1
-		line_height = screen_height
-		line_height = line_height ** 8
-		line_height = line_height / dist
-		
-		IF line_height > 99 THEN
-            line_height = 99
+	    line_height_w = max_height ** 128
+		line_height_w = line_height_w / dist
+		IF line_height_w >= max_height THEN
+            line_height_w = max_height
 		ENDIF
-		table_dist(dist) = (BYTE)line_height
+		table_dist(dist) = (BYTE)line_height_w
 	NEXT
 	PRINT "TA"
 END PROCEDURE
 
 PROCEDURE build_table_div_4096
 	DIM i AS WORD, res AS WORD
-	table_div_4096(0) = 4095
-	table_div_4096(1) = 4095
+	table_div_4096(0) = 16384
+	table_div_4096(1) = table_div_4096(0)
 	FOR i = 2 TO max_div_4096-1
-		res = 4096
+		res = table_div_4096(0)
 		res = res / i
 		table_div_4096(i) = res
 	NEXT
@@ -495,7 +492,7 @@ BEGIN GAMELOOP
 	PRINT "CALC"
 	DIM t
 	t = TIMER
-	FOR i = 1 TO 100
+	FOR i = 1 TO 1
 		raycaster[]
 	NEXT
 	t = TIMER - t
@@ -503,7 +500,9 @@ BEGIN GAMELOOP
 	PRINT t
 	PRINT (100 * 50 / t)
 	
+	DISABLE INTERRUPT
 	render_view_v2[]
+	ENABLE INTERRUPT
 	event_handler[]
 	WAIT KEY
 	LOCATE 0,0

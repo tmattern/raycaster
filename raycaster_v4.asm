@@ -1,7 +1,7 @@
 ; =============================================
 ; Raycasting ultra optimisé TO8/TO9 
 ; Version: 1.1
-; Date: 2025-01-21 12:59
+; Date: 2025-01-21 15:57
 ; Auteur: tmattern
 ; =============================================
 
@@ -20,57 +20,85 @@ CENTER_X    EQU  64     ; Centre horizontal de la fenêtre de rendu (128/2)
 MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 
+        ORG  $6000
 
-; Organisation mémoire à partir de $A000
-        ORG  $A000
+; --------------- MAP 32x24 ---------------
+        ALIGN 256
+MAP     
+        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 1
+        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 2
+        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 3
+        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 4
+        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 5
+        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 6
+        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 7
+        FCB  1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1  ; Ligne 8
+        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 9
+        FCB  1,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,0,1  ; Ligne 10
+        FCB  1,0,4,4,4,4,0,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 11
+        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 12
+        FCB  1,0,4,4,4,4,0,0,0,0,0,7,0,0,0,0,0,0,0,0,7,0,0,0,0,0,5,5,5,5,0,1  ; Ligne 13
+        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 14
+        FCB  1,0,0,4,4,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,5,5,0,0,1  ; Ligne 15
+        FCB  1,0,0,0,0,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 16
+        FCB  1,1,1,0,0,1,1,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,1,1,0,0,1,1,1  ; Ligne 17
+        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 18
+        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 19
+        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 20
+        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 21
+        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 22
+        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 23
+        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 24
 
-; Variables page directe (avec DP=$A0)
-MAP_PTR     RMB  2      ; $A000-$A001 Pointeur map courant
-DIST        RMB  2      ; $A002-$A003 Distance au mur (8.8)
-HEIGHT      RMB  1      ; $A004 Hauteur colonne
-CURR_COL    RMB  1      ; $A005 Colonne courante
-MAPX        RMB  1      ; $A006 Position map X
-MAPY        RMB  1      ; $A007 Position map Y
-PLAYERX     RMB  2      ; $A008-$A009 Position joueur X (8.8)
-PLAYERY     RMB  2      ; $A00A-$A00B Position joueur Y (8.8)
-ANGLE       RMB  1      ; $A00C Angle vue (0-255)
-STEPX       RMB  1      ; $A00D Direction X (-1/+1)
-STEPY       RMB  1      ; $A00E Direction Y (-1/+1)
-SIDEX       RMB  2      ; $A00F-$A010 Distance côté X (8.8)
-SIDEY       RMB  2      ; $A011-$A012 Distance côté Y (8.8)
-DELTAX      RMB  2      ; $A013-$A014 Delta X (8.8)
-DELTAY      RMB  2      ; $A015-$A016 Delta Y (8.8)
-SIDE        RMB  1      ; $A017 Côté touché (0=X, 1=Y)
-BLOCKS      RMB  1      ; $A018 Compteur blocs
-COL_PTR     RMB  2      ; $A019-$A01A Pointeur colonne courante
-TEMP        RMB  1      ; $A01B Variable temporaire
+; --------------- VARIABLES ---------------
+        ALIGN 256
+; Variables page directe (avec DP=$64)
+MAP_PTR     RMB  2      ; Pointeur map courant
+DIST        RMB  2      ; Distance au mur (8.8)
+HEIGHT      RMB  1      ; Hauteur colonne
+CURR_COL    RMB  1      ; Colonne courante
+MAPX        RMB  1      ; Position map X
+MAPY        RMB  1      ; Position map Y
+PLAYERX     RMB  2      ; Position joueur X (8.8)
+PLAYERY     RMB  2      ; Position joueur Y (8.8)
+ANGLE       RMB  1      ; Angle vue (0-255)
+STEPX       RMB  1      ; Direction X (-1/+1)
+STEPY       RMB  1      ; Direction Y (-1/+1)
+SIDEX       RMB  2      ; Distance côté X (8.8)
+SIDEY       RMB  2      ; Distance côté Y (8.8)
+DELTAX      RMB  2      ; Delta X (8.8)
+DELTAY      RMB  2      ; Delta Y (8.8)
+SIDE        RMB  1      ; Côté touché (0=X, 1=Y)
+BLOCKS      RMB  1      ; Compteur blocs
+COL_PTR     RMB  2      ; Pointeur colonne courante
+TEMP        RMB  1      ; Variable temporaire
 
 ; Variables pour le code auto-modifiant
-SKY_CODE    RMB  2      ; $A01C-$A01D Code pour le ciel
-WALL_CODE   RMB  2      ; $A01E-$A01F Code pour le mur 
-FLOOR_CODE  RMB  2      ; $A020-$A021 Code pour le sol
-SKY_ADDR    RMB  2      ; $A022-$A023 Adresse pour le ciel
-WALL_ADDR   RMB  2      ; $A024-$A025 Adresse pour le mur
-FLOOR_ADDR  RMB  2      ; $A026-$A027 Adresse pour le sol
+SKY_CODE    RMB  2      ; Code pour le ciel
+WALL_CODE   RMB  2      ; Code pour le mur 
+FLOOR_CODE  RMB  2      ; Code pour le sol
+SKY_ADDR    RMB  2      ; Adresse pour le ciel
+WALL_ADDR   RMB  2      ; Adresse pour le mur
+FLOOR_ADDR  RMB  2      ; Adresse pour le sol
 
 ; Tables et buffers 
-MAP_LINES   RMB  48     ; $A028-$A057 24 pointeurs lignes map
-OFFS_8      RMB  8      ; $A058-$A05F Table offsets 8 pixels  
-CODE_SKY    RMB  24     ; $A060-$A077 Code auto-modifiant ciel
-CODE_WALL   RMB  24     ; $A078-$A08F Code auto-modifiant mur
-CODE_FLOOR  RMB  24     ; $A090-$A0A7 Code auto-modifiant sol
+MAP_LINES   RMB  48     ; 24 pointeurs lignes map
+OFFS_8      RMB  8      ; Table offsets 8 pixels  
+CODE_SKY    RMB  24     ; Code auto-modifiant ciel
+CODE_WALL   RMB  24     ; Code auto-modifiant mur
+CODE_FLOOR  RMB  24     ; Code auto-modifiant sol
 
-; Code principal
+; --------------- CODE PRINCIPAL ---------------
 START   
         ; Init système
         ORCC #$50       ; Désactive interruptions
         
-        ; Configure DP=$A0
-        LDA  #$A0
+        ; Configure DP=$64
+        LDA  #$64
         TFR  A,DP
         
         ; Init mode vidéo
-        JSR  VIDEO_INIT ; appel init vidéo
+        JSR  VIDEO_INIT
         
         JSR  INIT       ; Initialisation
         
@@ -78,7 +106,6 @@ MAIN_LOOP
         JSR  RAYCAST_FRAME
         JSR  DRAW_MINIMAP
         BRA  MAIN_LOOP
-
 
 ; Initialisation 
 INIT    
@@ -194,8 +221,7 @@ SAVEY
 DDA_LOOP    
         LDD  <SIDEX
         CMPD <SIDEY
-        BHS  DO_STEPY      ; Si SIDEX >= SIDEY, on va en Y (branchement court)
-                           ; Sinon on continue en X
+        BHS  DO_STEPY      ; Si SIDEX >= SIDEY, on va en Y
 
 DO_STEPX                   ; Cas par défaut : on avance en X
         LDX  <MAP_PTR
@@ -318,7 +344,7 @@ REMAIN
         STA  <BLOCKS
 
 WALL1   
-        JSR  CODE_WALL      ; Modifié : WALL_CODE -> CODE_WALL
+        JSR  CODE_WALL
         LDD  WALL_ADDR
         ADDD #80
         STD  WALL_ADDR
@@ -423,7 +449,7 @@ DRAW_PLAYER
 
 VIDEO_INIT
         ; Map video RAM to $0000
-        LDA  #%01100000  ; D7=0, D6=1 (écriture autorisée), D5=1 (RAM active), D4-D0=00000 (page 0)
+        LDA  #%01100000  ; D7=0, D6=1 (écriture), D5=1 (RAM active), D4-D0=00000 (page 0)
         STA  $E7E6       ; Mappe la page 0 en $0000
 
         ; Passage en mode bitmap
@@ -449,7 +475,9 @@ INIT_PAL_LOOP
         BNE  INIT_PAL_LOOP
         RTS
 
+; --------------- DONNÉES ---------------
 ; Palette 16 couleurs pour le raycasting
+        ALIGN 256
 PALETTE
         FDB  $000       ; 0  Noir (ciel)
         FDB  $444       ; 1  Gris foncé
@@ -475,7 +503,7 @@ SCREEN_OFFS
         ; ... généré dynamiquement par INIT_SCREEN_OFFS
 
 ; --------------- TABLES ---------------
-        ORG  $AE00     ; Tables à la fin du programme
+        ALIGN 256
 ; Table sinus - 256 valeurs sur [0,2π]
 SINTAB
         FCB  0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45
@@ -514,34 +542,4 @@ COSTAB
         FCB  89,91,94,96,98,100,102,104,106,107,109,111,112,114,115,117
         FCB  118,119,120,121,122,123,124,124,125,126,126,127,127,127,127,127
 
-; --------------- MAP 32x24 ---------------
-; Map 32x24
-        ORG  $6000
-        ALIGN 256
-MAP     
-        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 1
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 2
-        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 3
-        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 4
-        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 5
-        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 6
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 7
-        FCB  1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1  ; Ligne 8
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 9
-        FCB  1,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,0,1  ; Ligne 10
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 11
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 12
-        FCB  1,0,4,4,4,4,0,0,0,0,0,7,0,0,0,0,0,0,0,0,7,0,0,0,0,0,5,5,5,5,0,1  ; Ligne 13
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 14
-        FCB  1,0,0,4,4,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,5,5,0,0,1  ; Ligne 15
-        FCB  1,0,0,0,0,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 16
-        FCB  1,1,1,0,0,1,1,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,1,1,0,0,1,1,1  ; Ligne 17
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 18
-        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 19
-        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 20
-        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 21
-        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 22
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 23
-        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 24
-
-        END  START        
+        END  START

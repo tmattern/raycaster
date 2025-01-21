@@ -1,8 +1,7 @@
 Troisième partie 
 Analyse matérielle du TO8 
 1. Analyse générale 
-Figure 16. Synoptique de l'unité centrale TO8 
-91 
+
 Conception générale -Description 
 Le micro-ordinateur TOB est conçu comme ses prédécesseurs, à partir d'un 6809 E, microprocesseur commandé à la fréquence de 1 MHz par deux horloges extérieures en quadrature: E et Q. 
 Le bus d'adresses 16 bits est direct et permet d'accéder aux différentes mémoires mortes et aux registres. 
@@ -18,7 +17,7 @@ Les deux pages de 6 Ko du moniteur ainsi que les deux pages de 1,9 Ko de logicie
 Les 2 x 32 Ko de logiciel d'application BASIC 1 - divers - BASIC 512 - EXTRAMONITEUR, sont logés chacun dans une ROM ou EPROM 32 Ko selon une répartition en quatre banques. 
 La commutation des banques s'effectue en programmation par une écriture d'adresses ROM dans un latch 74 LS 173. Ce circuit permet de sélecter chaque partie concernée dans une des mémoires mortes. 
 La cartouche de logiciel d'application externe est reliée à l'unité centrale par l'intermédiaire d'un connecteur. Elle est sélectée par logiciel à partir d'un bit de PIA du 6846. 
-92 
+
 »Pour lamémoire vive 
 Huit boîtiers 256 Kbits 41256 forment un plan mémoire de 256 Ko comprenant un découpagede pages logiques de 16 Ko. 
 Les différentes pages sont commutées par un adressage physique sur 18 bits en provenancedu gate array mode page. 
@@ -29,7 +28,7 @@ L'espace "cartouche” de 0000 à 3FFF L'espace "écran” de 4000 à SFFF L'
 Ilautorisel'utilisateuràaffecterunepagedeRAMàunespacelogiqueselon certaines modalités; notamment, ilpermet de recouvrir 16 Ko de logiciel par une page de mémoire vive. 
 Un circuit de palette du type EF 9369, programmable par le 6809 E, permet sous la dépendance du mode d'affichage déterminé une variété de seize teintes exploitables directement par l'écran parmi un choix de 4 096 au total. 
 Il délivre les trois informations B, V, R reprises et adaptées par des circuits d'interfaçage vidéo comprenant, entre autres, le dispositif d'incrustation. Ces circuits, recevant des signaux de synchronisation et de blanking du gate array, fournissent les tensions et adaptations nécessaires pour la prise péritel aux normes SCART ainsi que pour un éventuel codeur modulateur PAL dans la version export. 
-93 
+
 Un deuxième connecteur de carte, appelé polyvalent, permet de relier les bus et signaux nécessaires aux extensions. 
 Trois circuits d'interface sont en relation avec différents périphériques: 
 — Un 6846 qui assure par le timer l'envoi codé des informations numériques à enregistrer sur le magnétophone LEP (sauvegarde). Inversement, une ligne du PIA récupère les informations numériques décodées en provenance du LEP (chargement). Les autres lignes du PIA sont affectées à la commande de silence ou "MUTE" en utilisation de la souris, à ia prise en compte du signal BUSY de l'imprimante, à la communication avec le 6804 pour la gestion du clavier, au traitement de l'information “tactile” du crayon optique LP (signal INTERLP) et, enfin, à la commutation des logiciels internes ou de la cartouche exieme. 
@@ -38,7 +37,7 @@ Trois circuits d'interface sont en relation avec différents périphériques:
 Un microprocesseur monochip du type 6804 sert de contrôleur de clavier, Piloté par une horloge oscillant à11 MHz, ildialogue en transmission série codée avec le 6809 E par le truchement du 6846. La liaison est effectuée dans les deux sens A l'aide de deux fils DATAS et ACK. Le clavier est relié au 6804 par deux connecteurs assurant une transmission parallèle, 
 Un contrôleur de disquettes, sous forme d'un deuxième circuit à réseau logique ou gate array (THMFCO1), programmable par le 6809 E, délivre par l'intermédiaire d'une prises DIN 14 broches les signaux nécessaires au fonctionnement d'un lecteur de disquettes. 
 Une alimentation à découpage au secondaire fabrique les deux tensions de + 5 V et + 12 V nécessaires à la configuration de l'unité centrale. 
-94 
+
 2. Le 6809 E dans le TO8 
 Suivant la lignée de ses prédecesseurs, le fonctionnement général du TOB8 est basé sur le principe fondamental de la phase active et non active du 6809 E (cf. étude du TO9, paragraphe sur le Principe fondamental page 34). 
 La fréquence des horloges E et Q en provenance du gate array reste de 1 MHz et la constante de temps du RESET de 1 seconde. 
@@ -55,7 +54,7 @@ Pour E = 0, ie CPU n'a pas accès au bus RAM. Ce dernier est réservé au raf
 Pour E = 1, selon la programmation du gate array mode page, la zone d'adresse 0000-3FFF initialement réservée pour les logiciels internes ou externes peut être attribuée à une page de RAM. Dans ce cas, CSCRN = 1 et le signal TRANSN = 0 valident le buffer permettant au microprocesseur d'accéder à la mémoire vive, 
 Exceptées les zones d'adresses du gate array mode page, l'espace E000-FFFF reste en majorité innaccessible par le CPU à travers le bus RAM. 
 Les deux entrées d'interruptions utilisées sont IRQN et FIRQN. La première sert À gérer le clignotement du curseur (sortie du TIMER 6846), le fonctionnement du clavier (PIA du 6846) ou d'un périphérique externe tel que manettes de jeux, souris (6821 musique etjeux). La deuxième gère l'action du phototransistor dans Ie crayon optique lors d'une visée (gate array mode page) ou, en relation avec un logiciel adapté, l'action d'un éventuel capteur de “code barre". 
-95 
+
 3. Gestion de la mémoire morte 
 Contrairement au TO7, au TO7/70 et d'une façon similaire au TO9, le TO8 est livré avec des logiciels intégrés qui sont adressés dans le même espace mémoire que la cartouche. Le moniteur, quant à lui, réside dans une autre partie de zone mémoire. 
 Description des logiciels 
@@ -86,57 +85,25 @@ CS cartouche est inactif.
 De par l'action du gate array mode page, ce montage offre la possibilité d'inhiber les logiciels dans l'espace mémoire 0000-3FFF qui leur est normalement alloué. Dans ce cas de figure, CSCRTN = 1 constant. Ce type de fonctionnement permet à l'utilisateur de substituer de la ROM par une page de RAM pouvant être, par ailleurs, chargée par un logiciel en provenance d'une mémoire de masse (cf. fonctionnement du gate array mode page, page 105), 
 Sélection des quatre banques de logiciels internes 
 Le mécanisme employé est comparable à celui utilisé par les cartouches (COLORCALC, COLORPAINT, BASIC I .... et par le TO9 (en remplagant le signal CSN par CSCRTN). 
-98 
-Synthèse de fonctionnement 
-Le tableau suivant résume le mécanisme général des commutations seton différents cas de figure: 
-Champ d'adr. 
-CSCRT CSM P2 P4 
-Al AO Logiciel latché laiché sélectt 
-0000-3FFFF - 
-0 10 X
-0 11 X
-0 t1 X
-0 11X10Banque2 
-    0. 0  11X11Banque3 
-    1. 1  1 x x X X - Néant 
-- -" .. 
-X X Cartouche 0 0 Banque0 0 1 Banquel 
-4000-DFFF E000-E7AF 
-} 1 0 x 0 x x Monit;::e E800-FFFF partie 
-E000-E7AF } 1 0 x E800-FFFF 
-1 X 
-X Moniteur partie haute 
-99 
+
 4. Les mémoires vives 
 Technologiquement, les 256 Ko de mémoire vive résidente du TO8 sont consti- tués par 8 boitiers intégrés du type 41256. Ces circuits ont une capacité de 256K x 1 bit. Pour une reconstitution en données de 8 bits, huit 41256 sont associées, chacune étant spécialisée par un poids de D7 à DO (cf. figure 18) 
 GATE ARRAY MODE PAGE 
 TRAÎTEMENT MULTIPLEXAGE 
 EXTENSION MEMOIRE
-Figure 18. Système de mémorisation RAMS dans le TO8 
-100 
-UNITE CENTRALE 
 
 
 Fonctionnement d'une 41256 
 Les 41256 sont des mémoires vives dynamiqurgs qui permettentde stocker sous forme de matrice de 27 = 512 lignes et de 27 = 512 colonnes, 512 x 512 = 256 Kbits. L'adressage d'une telle matrice, à structure symétrique, nécessite 2 x 9 bits d'adressage envoyés en deux temps sur les 9 fils du bus d'adresse correspondant. Aux 9 bits de poids faible correspond l'adressage ligne validé par Ie signal de ligne RASN; aux 9 bits de poids fort correspond l'adressage colonne validé par le signal de colonne CASN. Le diagramme suivant précise la forme multiplexée de l'adressage: 
-aû a9 al alo 
-    2. a2  all 
-    3. a3  al2 
-ad al3 as al4 
-    6. a6  als 
-    7. a7  a16 
-    8. a8  al7 
+
 On peut faire suivre un adressage ligne bien particulier par deux adressages colonnes successifs en utilisant deux validations de CASN, pour RASN actif constamment. Ce type de fonctionnement s'intitule mode page. Il est utilisé dans le TOB, par l'intermédiaire du gate array correspondant. 
 Le rafraichissement de ces mémoires dynamiques se fait par adressages successifs des 512 lignes. 
 Les 41256 ne sont pas sélectées (bus de données déconnecté) lorsque le signal CASN n'est pas actif. Ce dernier remplace avantageusement une commande de CHIP SELECT, 
 Organisation générale 
 La figure 18 montre deux plans mémoires distincts composés chacun de huit boîtiers 41256. Le plan supérieur représente les 256 Ko de mémoire vive résidant dans l'unité centrale, l'autre plan représente les 256 Ko de mémoire vive appartenant à l'unité d'extension, 
-101 
+
 ChaqueboîtierreçoitencommunlescommandesdeRASNetRAMWNen provenance du gate array. CASIN et CAS2N autorisent la sélection des plans mémoire, conformément au tableau suivant par l'intermédiaire des commandes communes de CASN. 
-CAS1 CAS2 
-    0. 0  1 
-    1. 1  0 
-1 ! 
+
 Plan mémoiracetif 
 Résident Extension Aucun 
 Un bus de données RAMS est commun en entrée-sortie à tous les boîtiers des deux plans mémoire. Ce bus est en relation avec le bus de données du 6809 par l'intermédiaire d'un buffer 74 LS 245 commandé par le signal TRANSN selon certaines modalités. (cf.chapitre Ile6809 Edans leTO8, page 95). 
@@ -151,48 +118,7 @@ plan résident
 plan résident ou extension 
 Sélections et correspondances 
 Contrairement au TO9, la sélection des zones mémoire qui était faite par aiguillage de CAS et bits de PIA est réalisée, dans le TO8, par un processus de transformation d'adresses. L'adressage logique, provenant de la programmation sur 16 bits, est transformé en 18 bits. 
-102 
-Le tableau ci-dessous montre la relation entre les conditions physiques et les découpages logiques obtenus pour assurer la compabilité avec les anciens montages. 
-Conditions physiques 
-CAS2 Zomephysique 
-0
-1 00000-01FFF [
-1 02000-03FFF
-0 1 04000-07FFF
-0
-1 08000-0BFFF 0
-1 0C000-0FFFF 0
-1
-10000-13FFF 0
-1
-14000-17FFF 0
-1
-18000-1BFFF
-0
-1
-1C000-1FFFF 
-Découpage logique 
-CAS1 
-Page Zone logique 
-0
-4000-5FFF
-0
-4000-5FFF
-1
-6000-9FFF
-2 A000-DFFF 3 A000-DFFF 4 A000-DFFF § A000-DFFF 6 A000-DFFF 7 A000-DFFF 
-15 A000-DFFF 16 AO0O-DFFF 
-31 A000-DFFF 
-Appellation 
-RAM écran B RAM écran A RAM système Banque 0 Banque 1 Banque 2 Banque 3 Banque 4 Banque 5 
-Banque 13 Banque 14 
-Banque 29 
-0 1 
-1 
-t 0 
-0 
-3C000-3FFFF 00000-03FFF 
-3C000-3FFFF 
+
 La commutation de CAS1N et CAS2N est dépendante de la programmantion du gate array mode page (voir page 105) dans lequel cinq bits représentent le numéro de page. 
 On remarquera, à la vue de ce tableau, une correspondance logique/physique beaucoup plus rationnelle que dans les montages précédents. 
 Ecriture et lecture des RAMS 
@@ -201,14 +127,14 @@ Le microprocesseur peut communiquer en lecture ou écriture avec les RAMS à t
 La commande RAMW = R/WN. 
 « E =0, phase non active du 6809: 
 RAMW = 1, les mémoires sont en lecture automatique. Les lignes sont adressées en incrémentation constante par les compteurs du gate array. 
-103 
+
 Afin de permettre leur rafraîchissement en deux temps, soit en accès mode page, les colonnes sont doublement adressées, avec un écart constant qui représente une variation de 8 Ko. Ainsi: 
 Un premier accès a lieu dans la page physique 0 à une première adresse AD telle que: 
 * 00000 < AD < O1FFF donc dépendantede la mémoire éctan B (couleur). 
 Un deuxième accès a lieu dans la même page physique 0 à une adresse telle que: 
 * 02000 < AD + 8 Ko < 03FFF donc dépendante de la mémoire écran À (points). 
 Toute cette organisation est définie à partir du gate array "mode page”. 
-104 
+
 5. Le gate array mode page CF 74021 
 Ce nouveau circuit à réseau logique est une extension et une amélioration sensible du gate array principal utilisé dans le TO9. À lui seul, il assure en effet: 
 — La distribution des signaux nécessaires à l'interface vidéo —Les décodages d'adresses 
@@ -220,7 +146,7 @@ Dans le TO9, le gate array système est conçu de telle sorte que lorsque le C
 Pour chaque groupe de huit pixels ou GPL affichés à I'écran, la circuiterie vidéo doit tire 16 bits en mémoire: 8 bits pour Yoctet "RAMA" et 8 bits pour l'octet "RAMB". Jusqu'à maintenant, cette lecture devait se faire en une seule fois, sur 16 bits, ce qui imposait à la mémoire écran, d'être organisée en deux bancs de 8 bits, alors que tout le reste de la mémoire système est sur un octet seulement. Cette organisation "irrégulière” n'est pas optimale économiquement et n'est pas favorable à l'utilisation des boîtiers mémoire dynamiques N x 1 bits qui sont pourtant les plus répandus, 
 Afin de pallier cet inconvénient, le nouveau gate array dénommé "mode page” utilise un automate qui remplace l'accès 16 bits à la mémoire écran par deux accès successifs très rapides et qui totalisent la même durée que l'ancien accès 16 bits. 
 Cette technique est rendue possible grâce à un mode d'adressage particulier des mémoires dynamiques: le mode page. Dans ce type de fonctionnement, plusieurs 
-105 
+
 cases mémoires du composant peuvent être lues en séquence, à condition que ces cases appartiennent toutes à la méme rangée ou ligne de la matrice interne. 
 Ainsi pour une adresse poids faible constante et un signal RASN à l'état bas, deux accès sont possibles pour deux adresses poids fort différentes en corrélation avec deux fronts descendants du signal CASN. 
 Cette nouvelle structure implique donc une organisation nouvelle de la mémoire écran pour que les octets "RAMA" et "RAMB" soient accessibles en mode page. Evidemment, vu du logiciel, l'agencement de l'écran doit rester compatible avec les systèmes précédents, c'est-à-dire que le bit de forme doit toujours permetire de rendre l'accès du CPU, soit à la mémoire "écran A" soit à la mémoire "écran B". 
@@ -232,22 +158,15 @@ Structure du circuit
 La figure 19 schématise la structure interne du circuit à réseau logique prédiffusé. On y distingue: 
 — Le décodeur d'adresses sollicité par le bus d'adresses du microprocesseur A15 - A0. 
 — Le module des modes d'affichage avec ses deux registres programmables et son électronique en partie identique à ceux du gate array "mode d'affichage" dans le TO9. Conformément au mécanisme du "mode page”, dans ce module le transcodeur est attaqué en deux accès de huit bits, €n remplacement de l'ancien accés 16 bits RAMA RAMB. (Cf. analyse matérielle du TO9, p. 54.) 
-106 
-<, g 
-Figure 19. Synoptique du gate array mode page 
+
 — Le bus couleur en sortie du module. 
-R wooes 
-es o] 
+
 — Un circuit de génération RAMW (en logique câblée dans le TO9), combinaison de R/WN et E, afin de forcer une lecture automatique des mémoires vives pendant la phase non active du CPU, selon l'équation : 
 RAMW=R/W+E 
 Comme pour le TO9, (cf. étude matérielle, p. 48) on reconnaît l'autômate 
 constitué:
 — des compteurs points (avec C, RASN, E et Q), 
-LR is) 
-|Hisves 
-107 
-Gamen4->a4 
-Lilsnsor e 
+
 — des compteurs ligne et trame, (pilotés par H16 et CLRG), — et du bus de rafraichissement T12 - TO correspondant, 
 H16 VCO est une nouvelle commande de remise en phase (cf. incrustation). 
 — Les circuits de décodage et mixage délivrant les signaux vidéo SYNLT, SUPLT et INLT. 
@@ -255,25 +174,7 @@ H16 VCO est une nouvelle commande de remise en phase (cf. incrustation).
 — Un double circuit de multiplexeurs commutant d'une façon classique les adresses CPU ou les adresses compteurs (phase du CPU en fonction de E); commutant en matriçage ligne et colonne (poids faible, poids fort en fonction de C); le tout, par l'intermédiaire du bus de neuf bits MAO-MAB destiné aux mémoires vives, 
 En fait, un traitement ou aiguillage de signaux est effectué avant multiplexage. Cette action définit, entre autres, la génération des signaux CAS1N, CAS2N. Elle dépend de registres, dits de traitement, et programmables à souhait. C'est par là-même que résident l'originalié et la grande nouveauté du composant, voire du micro-ordinateur. 
 Traitement des signaux multiplexés 
-Les signaux multiplexés délivrés sur le dus MA8 - MAO répondent au diagramme suivant: 
-E=1 E=1 E=0 E=0 C=1 C=0 C=1 C=0 
-MA0-7 =
-MAI-8 =
-MA2-9 =
-MA3-10 = A3 MA4-11 = A4 MAS-12 = A5 MAG6-13 = A6 MA7-14 = A7 MA8-15 = MUI6 
-108 
-l 0 4 44 
-AO RAIS Al MU8 
-TO Bl T1 TU8 T TP 
-BEI TU8 
-T9 T10 T11 T12 
-=l BEO 
-0 col.2 
-A2 
-A9
-A10 T3 Ti0 All T4 TH Al2 T5 TN RAI3 T6 Q=0 RAI4 T7 BEO RAL7 T8 C 
-ligne colonne 
-ligne col.l 
+
 On voit apparaître selon les commandes d'horloge interne : 
 Pour:—E=1(phaseactiveduCPU) —C= 1(adreRAsMsleignses) 
 A7-AO = adresses poids faible du CPU; MUI6 représentant soit A8, soit les bits de commutation de banques BC2 ou BD2. 
@@ -296,7 +197,7 @@ TUB = soit T8, soit "0";
 BEO, BE; Q 
 On notera que pour ls condition E = 0, le système permet deux accès RAM, validés par deux fronts descendants de CASN (cf. gestion des mémoires vives) avecRASN àl'état0.Ladifférenced'adressageestreprésentéeparl'étatdeQqui, compte tenu du timing (quadrature avec E), délivre pendant la condition présente Tétat O et l'état 1. 
 Q est en position de poids 13, ce qui représente une variation ou saut d'adresse de 21 = 8 Ko, les autres bits restant inchangés. Ainsi, quelle que soit l'adresse pointée, il existe systématiquement deux accès dans deux pages de 8 Ko conjointes. Ces deux pages sont concrétisées par la RAMA et la RAMB. 
-109 
+
 Cette procédure réalise l'adressage automatique en mode page. On notera aussi que les signaux du type MU, TU, RA représentent des choix de commande imposés par programmation dans le registre de traitement afin de rendre compatible, comme nous l'avons précisé précédemment, le gate array avec le type de mémoires dynamiques et le micro-ordinateur choisis. 
 BC, BD, BE et le bit de forme, quant à eux, sont des états directement programmables dans les registres de traitement, pour les commutations de banque, voire de page. 
 Ainsi:
@@ -310,7 +211,7 @@ Ainsi: Digit de poids fort = À en version MO Digit de poids fort = E en versio
 Description etprogrammation des registres accessibles en écriture 
 eRegistre "système 1"-adresse A7E7/E7E7 Organisation: 
 D7 - bit de choix de l'utilisation du contrôleur de disque interne ou externe. En mode TO uniquement, ce bit a une influence sur les décodages d'adresses. 
-110 
+
 D7=0 = contrôleur inteme D7=1 = contrôleur exteme 
 D6 bit de gestion RAM dans l'espace cartouche. 
 D6 = 0 = mode compatible nanoréseau
@@ -333,7 +234,6 @@ D7 et D6 - bits indiquant le numéro de page physique à afficher sur l'écra
 Avec 
 D7=BEl D6=BE0 
 cf. diagramme précédent page 108 
-111 
 DS - bit pour masquer la cartouche, utilisable uniquement en mode MO, 
 DS=0 = cartouche visible D5=1 = cartouche masquée. 
 D4 —bit du BASIC à sélectionner, utilisable uniquement en mode MO. 
@@ -353,7 +253,7 @@ D4=0 = CASIN valide D4=1 = CAS2N valide
 D3 = BD3
 D2=BD2 cf. diagramme précédent, page 108 D1=BD1
 DO=BD0 
-112 
+
 Ainsi, en mode gestion de l'espace "RAM données”, D4-D0 donne le numéro de page physique de 16 Ko à affecter à l'espace logique. 
 «Registre "cartouche” adresse A7E6/E7E6 
 Organisation: 
@@ -375,7 +275,7 @@ DO =BCO
 Ainsi, en mode de gestion de l'espace cartouche, D4-DO donne le numéro de page physique de 16 Ko à affecter à l'espace logique correspondant. 
 «Registres "d'émulation” 
 Ces registres viennent remplacer, pour D4 du registre système 1 = 0, l'action dévolue aux PIA (6846, 6821) des unités centrales TO7/70, TO9, MOS, par la commutation du bit de forme et des banques. Réagissant aux même adresses, ils sont ainsi parfaitement transparents pour l'utilisateur. Ils assurent une compatibilité totale dans l'emploi des anciens logiciels. 
-113 
+
 « Registre de commutation "lecture traitement/crayon optique” adresse ATEA/ETEA. 
 Ce registre est un peu particulier et ne rentre pas dans la catégorie des registres susnommés. Il est en effet destiné selon l'écriture du bit DO à aiguiller, pour des adresses semblables, la lecture de certains registres de traitement ou des registres crayon optique (latch). 
 Ainsi:
@@ -391,7 +291,7 @@ Il permet la relecture du numéro de la page RAM, imposé en écriture, dans 
 D7, D6,-D5 sont à l'état "0". 
 «Registre "cartouche” -adresse A7E6/E7E6 
 C'est le seul registre permettant une relecture complète des bits positionnés pendant la phase d'écriture à la même adresse A7E6/E7E6. Il permet notamment 
-114 
+
 la relecture du numéro de page RAM, imposé en écriture, dans l'espace cartouche. 
 Description des registres accessibles en lecture pour D0 = 1 (A7E4/E7E4) 
 1 s'agit de quatre registres semblables à ceux du gate array système dans le TO9. 
@@ -408,7 +308,7 @@ Avec E-H4, bits du compteur point.
 « Registre "crayon optique 3" -adresse A7E6/E7E6 
 Organisation: 
 D7 - Bit significatif quand D6 = 0, c'est-à-dire, quand le spot est situé dans les bords droit ou gauche de l'écran. 
-115 
+
 D7=0 =spotsituédanslaparticgaucduhcaedre. D7=1 — spot situé dans la partie droite du cadre. 
 D6-Bitlatchédesituationfencêadrtereneligne(INILN). 
 D6=0 = spot situé dans le cadre à gauche ou à droite. D6=1=spotsituédanslapartiehorizdeolafnenêtreadeltreavail. 
@@ -431,7 +331,7 @@ D1=0 = pas de demande.
 D1=1 = une interruptiaoénté générée. 
 DO - bit de copie de DO écrit en A7E4.E7EA permettant de savoir quel type de registre est commuié en lecture. Ce bit est toujours accessible. 
 DO=0=regisdettrraitemsent. DO=1 = regisdtercreaysonoptique. 
-116 
+
 6. Le gate array "mode page" dans leTO8 
 Afin de procurer l'adaptation nécessaire à l'unité centrale, certains bits des registres de traitement "système 1" doivent être verrouillés dans un état bien particulier. La description suivante met en relief les bits nécéssairement "figés” pour la configuration TO8, par rapport aux bits "X" commutables selon les fonctions ou standard à réaliser. 
 Organisation du registre de traitement "système 1" en écriture -adresse E7E7 
@@ -449,7 +349,7 @@ RAM données
 crayon optique 2 
 espace cartouche crayon optique 3 système 1
 crayon optique 4 système 2 affichage 
-117 
+
 Diagramme des signaux multiplexés
 Les conditions précédemment exposées déterminent le diagramme suivant: 
 A0 BCLBDI1 Al BC2,BD2 
@@ -463,21 +363,16 @@ TO BEIl BE1 T1 0 0
 T2 T9 T9 
 A8 BC3,BD3 T8 0 0 Ligne Colonne Ligne Col.l Col.2 
 Les éléments de ce diagramme sont à considérer dans l'ordre des poids respectifs selon la forme: 
-Pour l'adressage CPU: 
-BC3BC2BC1BCO A13A12A11A10A9ABA7A6A5A4A3A2AlAO 
-BD3BD2BD1BDO F\ — p
-N rrrn Adressage 
 Commutation
 des banques dans
 l'espace cartou- Commutation mémoires écran RAMA, RAMB che ou données 
 1l convient de rappeler que le bit D4 dans le registre "RAM données” et dans le registre "espace cartouche”, de par sa position, joue indirectement le rôle d'un dix-neuvième bit d'adressage par le truchement de CASIN et CAS2N. 
 De par ce fait, on peut donc considérer que le système est capable d'adresser un plan mémoire de 512 Ko constitué lui-même de deux plans mémoires de 41256 (résident et extension) et dont les adresses iraient de 00000 à 3FFFF pour D4 = 0, soit CASIN =0 et de 40000 à 7FFFF pour D4 = 1, soit CAS2N = 0. 
-Pour l'adressage de rafraîchissement ou compteurs: 
-00BE1BEO Q TI2TI1TIOT9T8T7T6TST4T3T2T1TO LÀ e 
 Commutation @
 des banques Commutation mémoires écran RAMA, RAMB dans l'espa-
 ce écran 
-On désigne ce type d'adressage comme provenant d'un automate. 118 
+On désigne ce type d'adressage comme provenant d'un automate.
+
 Association entre adressage logique et adressage physique 
 Pour des raisons de compatibilité évidente, nous savons que l'ensemble du système, vu du logiciel, conduit à la détermination de quatre espaces d'adressage logique distincts: 
 l'espace "cartouche”
@@ -489,24 +384,21 @@ Cet espace situé entre 0000 et 3FFF contient normalement de la ROM sous forme 
 La correspondance entre l'adressage CPU et l'adressage multiplexé est immédiate pour les bits AO à A13, Elle se présente sous la forme suivante: 
 Adressage logique CPU (16 bits) 
 7/e,
-0 OA13A12A11A10A9A8ATA6A5A4A3A2A1A0 
+
 Adressage physique transformé (18 bits) 4————\ BC3 BC2 BC1 BCO A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 A0 
 L'adressage transformé permet un recouvrement par une des 16 pages d'adresses de 00000 à 3FFFF pour CASIN = 0 du plan mémoire résident et, par 16 pages d'adresses de 00000 à 3FFFF pour CAS2N = 0, du plan mémoire extension. 
-119 
+
 ESPACE MONTEUR 
-rcL ES 
+
 Découpage togique {carte memoire G4kKo) 
 
 CPU
 
 AUTOMATE 
-Figure 20. Association des espaces logiquesiphysiques 
 Espace "écran” 
-Cet espace, situé entre 4000 et SFFF, contient deux banques de 8 Ko (RAMA ou mémoire point, RAMB ou mémoire couleur) utilisées par l'automate pour synthétiser l'image affichée. Par défaut, c'est la page O qui est affichée, mais il est possible de demander à l'automate d'afficher les pages 1, 2 ou 3, 
-120 
-Adressage CPU tranaforré N 
-Page n 
-16Ko 
+Cet espace, situé entre $4000 et S7FFF, contient deux banques de 8 Ko (RAMA ou mémoire point, RAMB ou mémoire couleur) utilisées par l'automate pour synthétiser l'image affichée. Par défaut, c'est la page O qui est affichée, mais il est possible de demander à l'automate d'afficher les pages 1, 2 ou 3, 
+
+
 Découpage physique  
 Le principe est le suivant 
 — Après un RESET, une mise sous tension ou si les bits D7, D6 du registre situéenE7DDsonttouslesdeuxà0,c'estlapagephysiqueOquiestaffichéeà T'écran, La façon dont les données sont interprétées par l'automate d'affichage dépend alors du mode choisi. 
@@ -518,7 +410,7 @@ Espace "système”
 Cet espace logique situé entre 6000 et 9FFF contient les informations vitales à l'unité centrale, telle que la page O du moniteur. Cet espace n'est pas reconfigurable, on dit qu'il est fixe. C'est la page physique 1 du plan mémoire 41256 qui y est constamment affectée. Aucun registre ne nermet de reprogrammer cet espace. 
 Espace "données” 
 Cet espace logique est situé entre A000 et DFFF. Sur TO9 et sur TO7/70 cet espace était géré en "bank switch" à l'aide des bits de PIA qui permettaient de choisir une page physique de 16 Ko parmi six. Toujours pour des raisons de 
-121 
+
 compatibilité, cette technique est ici totalement émulée par le gate array mode page. L'écriture et la lecture des cinq bits de PIA se font identiquement. Pour obtenir ceite émulation, il faut que le bit D4 du registre E7E7 soit mis à 0. Ceci est obtenu par défaut au RESET et à la mise sous tension. 
 Nous savons qu'un deuxième mode est disponible en mettant à 1 le bit D4 de E7E7. Dans ce mode, il suffit d'écrire le numéro (de O 31) de la page physique souhaitée, par les bits D4-DO du registre E7ES, pour que la page concemée soit affectée à l'espace "données”. Ainsi la gestion de la mémoire s'en trouve simplifiée puisqu'une simple écriture de numéro de page suffit à effectuer le recouvrement. La correspondance entre l'adressage CPU et l'actressage multiplexé est immédiate pour les bits A0 à A13. Elle se présente sous la forme suivante: 
 Adressage logique CPU (16 bits) —nn= 
@@ -527,17 +419,6 @@ Adressage physique transformé (13 bits)
 Le — —- BD3 BD2 BDI BDO A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 A0 
 Comme pour l'espace cartouche, l'adressage transformé permet le recouvrement des deux plans mémoire de 256 + 256 = 512 Ko par l'intermédiaire du CASIN et CAS2N en relation avec le bit D4. 1l faut noter cependant que de par la transposition schématisée ci-avant, il existe une distorsion entre les deux adressages qui se manifeste dans le champ A15-A12. Ainsi, en prenant par exemple un recouvrement par la page 2: 
 BD3=0 BD2=0
-la transposition devient: 
-Adressage logique 
-AIS Al4 A13 1010...1010 1011 1011 1100...1000 1101 1[01 
-122 
-BDl=1 
-BD0=0, 
-Adressage physique 
-AIZ ... 
-BDI BDO AIl3 AI2 
-_———— N -O 
-Ontraduitcephénomèpanreundécoupagentranchesde4Ko,exprimpéarle tableau suivant, selon la valeurde A13, A12: 
 Adresse logique 
 A000-AFFF B000-BFFF C000-CFFF DO00-DFFF 
 Adresse physique 
@@ -555,9 +436,6 @@ La correspondance entre espace "cartouche” et espace “écran” est donc qu
 Espace "cartouche” Espace "écran” 
 0000-1FFF RAMA 2000-3FFF RAMB 
 On notera pour terminer que les six pages accessibles par bits de PIA, selon l'ancien mécanisme, correspondent aux pages 2 à 7 selon le-nouveau système. 
-123 
-LBWO 
-NAUSAUN 
 On en déduit 
 Ancien sysième Nouveau système page 
 Au RESET, la gestion par bits de PIA étant prise par défaut, c'est la page physique2quiestaffectéeàl'espaceRAM "données”. 
@@ -569,7 +447,7 @@ Ce registre d'affichage est identique à cetui du TO9 (cf. sysième de visuali
 — du mode d'affichage
 — de la fréquence pixel
 — de l'organisation relative des bits à l'intérieur des données vidéo extraites de la mémoire, 
-124 
+
 Cette procédure est récapitulée par le tableau suivant:
 D7 D6 DS D4 D3 D2 Dl D0 Mode
 0 TI TO & @ C B A 
@@ -595,7 +473,7 @@ Dans ce type de codage, un point est représenté par deux bits consécutifs 
 Gestion des couleurs du cadre 
 La couleur du tour de l'écran est programmable directement par le registre “sysiéme 2" en E7DD, par les bits D3 à DO, selon une organisation semblable à celle du TO9, exception faite pour le bit S (saturation) qui devient P (pastel). 
 D3 D2 DI DO PBVR 
-125 
+
 Les décodages d'adresses 
 Le gate array mode page génère directement un certain nombre de signaux destinés à sélectionner les différents ROMS et périnhériques. Ce sont: 
 CSMN — = sélection de l'espace moniteur CSCRTN = sélection de l'espace cartouche 
@@ -613,7 +491,7 @@ Par ailleurs, il est possible en programmant le bit D7 du registre "système 1"
 Tl est à signaler que l'espace moniteur contient un "trou” de 32 octets situé en FFDO et FFEF qui sant réservés aux décodages d'extensions futures (rôle de CS32 en relation avec le connecteur extension). Dans cet espace, CSMN = 1. 
 Sélection de l'espace cartouche CSCRTN 
 L'espace logique réservé aux logiciels externes (cartouche) ou interne s'étend de 0000à3FFF.IlpeutêtrerecouvertpardelaRAMenpositionnantlebitD5du registre "espace cartouche” à l'état 1. Dans ce cas, CSCRTN qui est normalement validé passe à l'état 1, supprimant, par là-même, toute communication avec les ROMS. 
-126 
+
 Sélection de la zone des périphériques externes EXXXN 
 Le signal EXXXN sort du gate array “mode page” pour aller vers les connecteurs d'extensions de l'unité centrale où il est utilisé par les périphériques pour leur décodage. 
 Il permet, entre autre, d'effectuer un prédécodage d'adresses dans le cas où l'utilisateur désire se fabriquer sa propre extension, Ce dernier devra alors impérativement loger son interface dans l'espace mémoire E7B0 à E7BF. 
@@ -627,7 +505,7 @@ SilebitD7duregistre"données”enE7ESestécritàO,alorsEXXXNn'estpas valide a
 L'ensemble des adresses [E7DA -E7DB] U [E7DD -E7DF] invalide toujours le signal EXXXN car elles correspondent àlapalette etcertains registres protégés. 
 Sélection du contrôleur du DRIVE DISN 
 Ce signal n'est valide sur [E7DO -E7D9] que si le bit D7 du registre “système 1" (E7E7) = 0, déterminant alors l'utilisation du contrôleur interne. 
-127 
+
 Tableau récapitulatif 
 Avec D77 bit du registre "système 1" en E7E7 pour le contrôleur externe. Avec D75 bit du registre "RAM données" en E7ES pour le choix d'un QDD. 
 D77=0 D75=0 
@@ -649,7 +527,7 @@ Le fonctionnement de l'interrupteur du crayon optique est assuré de la même 
 Pour la gestion du photo-transistor, via un circuit à miroir de courant, le signal CKLPN est récupéré par le gate array mode page qui intègre la demande d'interruption FIRQN établie anciennement par le 6821 dans le TO9. En dehors de cette particularité, le fonctionnement reste pratiquement semblable et le gate array mode page offre, comme son successeur, la possibilité de faire des mesures avec la résolution du point. 
 Nous savons que quatre registres permettent de lire les informations afférentes à une mesure light-pen; ce sont : 
 en E7E4 - le registre crayon optique 1 en E7ES - le registre crayon optique 2 en E7E6 - le registre crayon optique 3 en E7E7 - le registre crayon optique 4 
-128 
+
 1010 1010 
 1010 QDD 
 En écrivant le bit DO de E7E4 à 1, on se prépare à pouvoir lire ces registres et, par la même occasion, on autorise le passage du signal arrivant du crayon optique lui-même vers la sortie ITLP du gate array reliée à I'entrée FIRQN du CPU. On "arme” donc la routine light-pen en rendant le CPU interruptible par les signaux de mesure en provenance du crayon optique. L'arrivée d'une impulsion de mesure CKLPN provoque une FIRQN sur le CPU et latche le contenu du compteur 16 bits associé. La valeur du compteur désigne alors le pixel "vu" par le crayon optique. Le CPU peut alors lire le contenu de ce compteur par les registres E7E4 et E7ES. 
@@ -659,7 +537,7 @@ Les 3 bits E, H2, H4 issus d'un com}‘)lmge à 8 MHz donnent la résolution d
 Au moment de l'arrivée de CLKLPN, un drapeau d'interruption est levé dans le bit DI du registre E7E7. Ceci permet de vérifier que l'interruption FIRQN a bien été causée par le crayon optique. 
 La lecture des poids faibles du compteur light-pen (E7E5) a pour effet de relâcher la ligne FIRQN et d'abaisser le drapeau d'interruption dans le registre E7E7. Dès que cette lecture est effectuée, le gate array est donc prêt à effectuer une autre mésure. 
 L'organisation du gate array mode page permet donc d'implémenter une routine de mesure du crayon optique similaire à celle qui existe sur le TO9 (cf. étude matérielle du TO9, gestion du crayon optique, page 82). 
-129 
+
 7. Chaîne de visualisation 
 Le gate array "mode page” génère les informations R, V, B, P et HP nécessaires
 au circuit de palette IGV EF 9369 d'une façon parfaitement identique au TO9 (cf. Le système de visualisation du TO9, page 52). Ce circuit remplit bien évidemment les mêmes fonctions (choix de 16 teintes parmi 4096, choix de la couleur d'incrus-tation) et se programme de la même manière. 
@@ -670,7 +548,7 @@ La figure 21 concrétise le fonctionnement général du dispositif.
 Ainsi en fonctionnement normal (après mise sous tension ou RESET) le bit CB2 du PIA système est à l'état 1. Le transistor T14 est saturé et le transistor TO6 est bloqué. Le 12 V apparaît en commande de commutation lente et force par la diode D4 et la conduction du transistor TOS la commande de commutation rapide. Le bit marqueur en provenance du circuit de palette est inopérant, Iz diode D7 étant bloquée. 
 En fonctionnement incrusté, après mise à l'état 0 de CB2 par programmation, le transistor T14 est bloqué, entraînant la saturation du transistor TO6. La commande de commutation lente devient inactive (O V). Le bit marqueur, protégé par la diode D4 constamment bloquée, devient maître d'œuvre pour envoyer la commande de commutation rapide à travers TOS5, selon 1a procédure connue sur le TO9: 
 couleur hors incrustation ==> M = 1==> commutation rapide couleurd'incrustation|==>M=0—>pasdecommutationrapide 
-130 
+
 Le boîtier d'incrustation branché, le gate array reçoit la commande de remise en phase ligne par l'intermédiaire du 16 MHz VCo. Il regoit la commande de remise à l'heure trame par l'intermédiaire de CLRG. 
 TELEVISEUR 
 BOMER EXYENSION INCRUSTATION 
@@ -684,27 +562,16 @@ GATE ARRAY MODE PAGE
 UNITE CENTRALE 
 Tos
 T14 
-Figure 21. Synoptique du fonctionnement de l‘incrustation dans le TO8 
-+5V 
-131 
+
 8. Les interfaces 
 Le TO8 comprend quatre circuits d'interface pour gérer ses divers périphériques (un 6846, deux 6821, un 6804), Certains bits restent compatibles pour le TO9, ce qui est mis en évidence dans la description suivante, 
-L'interface 6846 
-nesr — DATAS (CLAVIER) —
-R—S MUTE 
-Bus données 8bîts, 
-A3,
-A Bus adresses 4bits 
-Ecx—Sj +Vee 
-Ra upé— 
-Figure 22. Le 6846 dans le TO8 
-Partie ROM 
-témulation)
+
+
 Switch crayon optique Cartouche 
 Banque moniteur ACK (clavier) BUSY {imprimante} LEP (réception} 
 LEP (émission) 
 Comme pour le TO9, la partie mémoire morte de ce boîtier complexe n'est pas utilisée (adressage sur 4 bits de AO à A3). 
-132 
+
 Partie PIA 
 Le port 8 bits a, par initialisation, trois lignes P2, P4, P5 configurées en sortie et trois autres lignes P1, P6, P7 en entrée. Le bit PO, bien que configuré en sortie, n’est pas utilisé matériellement (broche non connectée). En fait, l'action de ce bit est émulée dans le gate array "mode page” (cf. Le gate array mode page CF 7021, page 105) pour la commutation du bit de forme. 
 - Le bit P1, comme pour le TO9, assure la lecture de l'état de l'interrupteur du crayon optique (0 => interrupteur ouvert, 1=> interrupteur fermé). 
@@ -721,7 +588,7 @@ Les lignes de contrôles, incompatibles avec celles du TO9, assurent pour:
 — CP1: La réception des données en transmission série, provenant du clavier via le 6804. Chaque bit est codé selon une temporisation récupérée en demande IRQN par le 6809 E (cf. fonctionnement du 6804). 
 — CP2: initialisée en sortie, envoie la commande "MUTE" procurant un blocage du son (action sur un transistor du mélangeur) lorsque l'utilisateur manipule la souris: 
 0 ==> passage du son 1 ==> blocage du son 
-133 
+
 Partie TIMER
 D'une façon identique au TO9, la sortie CTO génère l'écriture cassette, 
 Adresses des registres internes 
@@ -756,10 +623,9 @@ Les quatre autres lignes sont consacrées à la manette de jeux "1" par l'inte
 PA4 PAS PA6 PA7 
 — contact nord — contact sud 
 — contact ouest contactest 
-135 
+
 *Bus connées 
-Figure 24. Le 6821 "musique et jeux” dans le TO8 
--Pon B 
+
 Chaque ligne a un rôle complexe: 
 PBO commun bufferisé pour la manette de jeux "0" ou bnt 0 configuré en sortie pour leCNA. 
     1. PB1  commun bufferisé pour la manette de jeux "1" ou bit 1 configuré en sortie pour le CNA. 
@@ -778,8 +644,7 @@ Adresses des registres internes
 E7CC - registre de direction de données ou registre de données partic À E7CD - registre de direction de données ou registre de données partie B E7CE - registre de contrôle partie À
 E7CF - registre de contrôle partie B. 
 
-Le 6804 
-LeMONOCHIP 6804apourtâchel'interfaçageetletraitementduclavieren relation avec le 6846 et le 6821 système, 
+
 
 Interfaçage du clavier 
 La figure 25 montre les interconnexions entre la matrice 10 x 8 du clavier et les ports A, B et C du 6804, Ce dernier est piloté par un quartz à la fréquence de 
@@ -799,7 +664,7 @@ CAPS LOCK non actionné ->0
 7 bits suivants: Numéro de la touche de 0 à 79 (contrairement au TO9 et TO9 +, ce n'est pas le code ASCII de la touche qui est envoyé, mais seulement Je numéro de la touche, le trancodage numéro 
 --> code ASCII étant à la charge du 6809 E). 
 Corrélativement avec KTEST, pour prévenir le 6809 E qu'il va recevoir une information du clavier, le 6804 descend le bit PC3 à 0, ce qui provoque une interruption par le bit CP1 du 6846. I attend ensuite que le 6809 descende le fil P5 du 6846 à O, lui indiquant qu'il est prêt à recevoir les 9 bits de données (signal ACK). 
-139 
+
 Les informations séries transmises répondent à la convention suivante: 
 — un 1 logique est codé comme étant une impulsion positive de 56 microsecondes,
 - un 0 logique est codé comme étant une impulsion positive de 38 microsecondes. 
@@ -812,7 +677,7 @@ Minuscule: Le clavier se met alors en CAPS LOCK inactif -LED éteinte.
 Quand le 6809 E souhaite émettre une requête, il met P5 à O et attend que le 6804 descende de fil PC3 à 0, le 6804 compte alors le temps pendant lequel P5 reste à 0. Le 6809 E peut donc générer trois temporisations différentes correspondant aux trois requêtes possibles: 
 — 0,67 milliseconde --> demande d'initialisation du 6809 E — 1,30 milliseconde --> mise en CAPS LOCK actif
 — 1,90 milliseconde --> mise en CAPS LOCK inactif. 
-140 
+
 9. Le contrôleur de l'unité de disquette . 
 Le contrôleur de drive du TO8 est un nouveau boitier gate array THMFC1 développé par THOMSON Micro-informatique, pour répondre aux besoins des nouvelles machines. Il présente, notamment, une adaptabilité aux différents formats d'enregistrement des données (codage FM et MFM) et à la gestion des floppies 3"5, 5"25 ou d'un QDD (Quick Disk Drive). 
 1 peut commander deux unités de disquettes à la fois. D'un point de vue externe, le THMFCI s'apparente au WD 2793 ou WD 1770 utilisés sur le TO9. En interne, il se distingue par l'emploi d'un séparateur de données utilisant la technique de comptage à la place d'un circuit à verrouillage de phase (PLL). De même, il intègre un registre du choix de codage simple ou double densité (FM, MFM). 
@@ -833,8 +698,7 @@ Pour le QDD, cette commande concerne l'alimentation du moteur.
 Quatre signaux d'entrée informent le contrôleur: 
 IPN Indique le passage du repère d'index (une impulsion négative par tour de disquette). Dans le QDD, ce bit indique la présence 
 ou l'abscence de disquette (1 = disquette présente). 
-142 
-TROON 
+
 Indique que la tête de lecture écriture est positionnée sur la piste 0. Avec le QDD, ce bit est envoyé constamment à l'état 0, ce qui permet au THMFC1 de "savoir" quel type de machine il doit contrôler. 
 Indique que la disquette insérée dans la mécanique est protégée en écriture. 
 Flot de données lues sur la disquette. 
@@ -844,7 +708,7 @@ commande de précompensation à 437,5 ns par pas de 62,5ns.
 inhibition du systième, lorsque le signal READY est inactif (bit à 1). 
 128 mots/secteur 256 mots/secteur 512mots/secteur 
 1024 mots/secteur 
-143 
+
 « Registre CMD2 en écriture à E7D2 
 Registre de commande, il a des fonctions différentes seion le drive utilisé: Floppy ou QDD. 
 
@@ -887,7 +751,7 @@ Précompensation).
 —> _ fonctionnement normal du séparateur.
 —> valeur permettant de charger le compteur du séparateur 
 selon le mode de codage utilisé. 
-145 
+
 Spécification d'un secteur 
 Un secteur est composé d'un champ d'identification et d'un champ de données selon le modèle: 
 Nombre d'octets 

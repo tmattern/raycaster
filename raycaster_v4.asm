@@ -196,7 +196,7 @@ DDA_LOOP
         CMPD <SIDEY
         BLO  STEPX
 
-STEPY   
+DO_STEPY   
         LDX  <MAP_PTR
         LDA  <STEPY
         BPL  UP
@@ -214,7 +214,7 @@ SAVEY2
         STD  <SIDEY
         BRA  DDA_LOOP
 
-STEPX   
+DO_STEPX   
         LDX  <MAP_PTR
         LEAX STEPX,X
         STX  <MAP_PTR
@@ -228,12 +228,12 @@ STEPX
 HITHORZ
         LDD  <SIDEX
         CLR  <SIDE
-        BRA  DIST
+        BRA  CALC_DIST
 HITVERT
         LDD  <SIDEY
         LDA  #1
         STA  <SIDE
-DIST    
+CALC_DIST    
         STD  <DIST
 
         ; Calcul hauteur optimisé

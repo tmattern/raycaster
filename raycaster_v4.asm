@@ -540,13 +540,15 @@ VIDEO_INIT
         LDB  #$0F       ; Commence par la couleur 15
 VI_PAL_LOOP
         STB  $E7DA      ; Sélectionne l'index de couleur (0-15)
-        LDA  PALETTE,B  ; Charge composante RG
+        LDX  #PALETTE   ; Charge l'adresse de base de la palette
+        LDA  B,X        ; Charge RG depuis PALETTE+B
         STA  $E7DB      ; Écrit RG
-        LDA  PALETTE+16,B ; Charge composante B
+        LDX  #PALETTE+16 ; Charge l'adresse de la partie bleue
+        LDA  B,X        ; Charge B depuis PALETTE+16+B
         STA  $E7DB      ; Écrit B
         DECB            ; Couleur suivante
-        BPL  VI_PAL_LOOP ; Continue jusqu'à ce que B devienne négatif (après couleur 0)
-
+        BPL  VI_PAL_LOOP ; Continue jusqu'à ce que B devienne négatif
+        
         ; Active la palette
         LDA  #$39
         STA  $E7DB

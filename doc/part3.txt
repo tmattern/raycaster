@@ -5,20 +5,20 @@ Analyse matérielle du TO8
 Conception générale -Description 
 Le micro-ordinateur TOB est conçu comme ses prédécesseurs, à partir d'un 6809 E, microprocesseur commandé à la fréquence de 1 MHz par deux horloges extérieures en quadrature: E et Q. 
 Le bus d'adresses 16 bits est direct et permet d'accéder aux différentes mémoires mortes et aux registres. 
-Le bus de données 8 bits véhiculant les principaux échanges a une ramification particulière:lebusdedonnéesRAM quiestbufferiséetreliéparun74LS245. Pendant la phase non active du 6809, ce bus est isolé du bus de données prin- cipal par l'action du 74 LS245 commandé par le signal TRANS. C'est durant 
-cette période que le gate array accède aux mémoires en "mode page”. 
+Le bus de données 8 bits véhiculant les principaux échanges a une ramification particulière:le bus de données RAM qui est bufferisé etre lié par un 74LS245. Pendant la phase non active du 6809, ce bus est isolé du bus de données principal par l'action du 74 LS245 commandé par le signal TRANS. C'est durant 
+cette période que le gate array accède aux mémoires en "mode page". 
 Les lignes de contrôles du 6809 E correspondent: 
 — aux commandes de lecture écriture R/WN des différents registres et mémoires, 
 — aux demandes d'interruption IRQN concemant la gestion du clavier, le clignotement du curseur, les manettes de jeux et la souris, 
 — aux demandes d'interruption FIRQN pour le fonctionnement du crayon optique et du code barre, 
 Un circuit de réinitialisation "RESET" est en relation avec le 6809 E et diffé- rents circuits, tels que le contrôleur de clavier 6804. 
-#Pour lamémoire morte 
+#Pour la mémoire morte 
 Les deux pages de 6 Ko du moniteur ainsi que les deux pages de 1,9 Ko de logiciel contrôleur de disque sont logées dans une EPROM 16 Ko 27 128. 
 Les 2 x 32 Ko de logiciel d'application BASIC 1 - divers - BASIC 512 - EXTRAMONITEUR, sont logés chacun dans une ROM ou EPROM 32 Ko selon une répartition en quatre banques. 
 La commutation des banques s'effectue en programmation par une écriture d'adresses ROM dans un latch 74 LS 173. Ce circuit permet de sélecter chaque partie concernée dans une des mémoires mortes. 
 La cartouche de logiciel d'application externe est reliée à l'unité centrale par l'intermédiaire d'un connecteur. Elle est sélectée par logiciel à partir d'un bit de PIA du 6846. 
 
-»Pour lamémoire vive 
+»Pour la mémoire vive 
 Huit boîtiers 256 Kbits 41256 forment un plan mémoire de 256 Ko comprenant un découpagede pages logiques de 16 Ko. 
 Les différentes pages sont commutées par un adressage physique sur 18 bits en provenancedu gate array mode page. 
 L'extension mémoire, accessible par un connecteur de carte relié au bus de données RAM, est constituée de huit boîtiers 41256 qui regroupent seize autres pages de RAM utilisateur (pages 16 à 31) adressées de la méme manière et différenciées par le signal CAS2N. 
@@ -48,7 +48,7 @@ CSCRTN zones adressées TRANSN x XXXX 1
 0000-3FFF 1 
 0000-3FFF
 4000-DFFF
-0 } validation 0 }du buffer 
+
 La consultation de ce tableau amène les remarques suivantes: 
 Pour E = 0, ie CPU n'a pas accès au bus RAM. Ce dernier est réservé au rafraîchissement. 
 Pour E = 1, selon la programmation du gate array mode page, la zone d'adresse 0000-3FFF initialement réservée pour les logiciels internes ou externes peut être attribuée à une page de RAM. Dans ce cas, CSCRN = 1 et le signal TRANSN = 0 valident le buffer permettant au microprocesseur d'accéder à la mémoire vive, 
@@ -70,8 +70,7 @@ De par les décodages d'adresses CSCRTN et CSMN en provenance du gate array mod
 Sélection d’une page moniteur 
 Par construction, le bit P4 du 6846 étant relié au bit A13 du bus d'adresse de la mémoire de 16 Ko, ce bit permet de choisir la page de 8 Ko haute ou basse du boîtier. Ainsi: 
 P4 =0 ==> partie basse de la ROM P4=1==>partiehaudetlaeROM 
-Fiatchs A1cn 
-|— 
+
 La résistance reliée à la masse a pour effet, lors de l'initialisation, de rendre accessible automatiquement la partie basse de la ROM, P4 étant positionnée en entrée. 
 Sélection entre logiciels résidents et cartouche 
 La commutation se fait à partir du bit P2 du 6846 qui, combiné avec le décodage d'adresse CSCRTN, restitue à travers une logique ciblée les deux commandes telles que: 
@@ -102,7 +101,7 @@ Les 41256 ne sont pas sélectées (bus de données déconnecté) lorsque le
 Organisation générale 
 La figure 18 montre deux plans mémoires distincts composés chacun de huit boîtiers 41256. Le plan supérieur représente les 256 Ko de mémoire vive résidant dans l'unité centrale, l'autre plan représente les 256 Ko de mémoire vive appartenant à l'unité d'extension, 
 
-ChaqueboîtierreçoitencommunlescommandesdeRASNetRAMWNen provenance du gate array. CASIN et CAS2N autorisent la sélection des plans mémoire, conformément au tableau suivant par l'intermédiaire des commandes communes de CASN. 
+Chaque boîtier reçoit en commun les commandes de RASN et RAMWN en provenance du gate array. CASIN et CAS2N autorisent la sélection des plans mémoire, conformément au tableau suivant par l'intermédiaire des commandes communes de CASN. 
 
 Plan mémoiracetif 
 Résident Extension Aucun 

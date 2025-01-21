@@ -194,9 +194,10 @@ SAVEY
 DDA_LOOP    
         LDD  <SIDEX
         CMPD <SIDEY
-        BLO  STEPX
+        BHS  DO_STEPY      ; Si SIDEX >= SIDEY, on va en Y (branchement court)
+                           ; Sinon on continue en X
 
-DO_STEPX   
+DO_STEPX                   ; Cas par défaut : on avance en X
         LDX  <MAP_PTR
         LEAX STEPX,X
         STX  <MAP_PTR

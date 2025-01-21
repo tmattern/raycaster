@@ -1,0 +1,837 @@
+T08
+MICRO ORDINATEUR
+TO8
+
+UNITE CENTRALE CENTRAL UNIT
+ALIMENTATION POWER SUPPLY
+8- Organisation de al mémoire. 11/1-32
+Memory map
+8-1 Srcunaideincipe.
+123-2 Operi demodgoinemen.t
+S o c k en saopqitue.
+24- perat edfoncoitnemen.t III/1 -8
+5-7 Srutmaedprnicpie.
+8- Cricuti torimé,
+IV/1-2
+ARTSSEPEICES DETACHES
+FICHE SPECIFIQUE SPECIFIC DATA
+CU88-AZE
+FICHE SPÉCIFIQUE SPECIFIC DATA
+
+ 1/2
+2- Treant indigine aeevoir lil ecasous tension.
+- Trappe destinée à recevoir les cartouches de pro- grammes.
+3 - Clavier
+4 - Touche « INIT » permet en cours d'utilisation d'affi- cher à nouveau le menu.
+5
+C onn e cteur permettant le raccordement d'une manette de jeux (numéro 0 en basic) ou d'une souris. 6 -
+Connecteur permettant raccordement d'une manette de jeux (numero 1en basic).
+7-
+Sortie antenne UHF PAL (modèle équipé).
+8 -
+Prise DIN permettant le raccordement du crayon opti-
+9 -
+Prise DIN permettant le raccordement du lecteur enregistreur de programmes.
+10 -
+Prise péritélévision permettant le raccordement au
+.
+11 -
+Prise CINCH sortie son.
+12 -
+Prise permettant le raccordement d'une imprimante (interface parallèle).
+13 -
+Prise permettant le raccordement d'un lecteur de dis- quettesoud'unODD.
+14 -
+Connecteur permettant le raccordement des boîtiers d'extension.
+15 — Connecteur extension RAM.
+16 - Interrupteur de mise en service de l'appareil. 17 - Cordon secteur.
+2-
+Poteit aciodicatite phoracon pareredpowere- up.
+3-
+Keyboard.
+4 -
+« INIT » key errables the menu ot displayed during utilisation.
+5-
+Connector for joystick (number 0 in basic) or a mouse. 6-
+Connector for joystick (number 1ni basic).
+9 -
+DNI connector for connecting the program recorder.
+10 -
+SCART connector for connecting the television receiver.
+11 -
+CINCH connector for audio output.
+12 -
+Printer connector (parallel) interface.
+13 -
+Connector for connecting a floppy or a QDD.
+14 -
+Connector for expansion packages.
+15 -
+RAM extension connector. 1 6 -
+On switch for computer. 17 -
+Mains lead.
+CARACTÉRISTIQUES PRINCIPALES
+COFFRET : matière moulée.
+CLAVIER :
+mécanique,
+81.
+touches dont 5 touches de fonction.
+DIMENSIONS : L440, H80, P 226 mm.
+MASSE : 2,6 kg.
+ALIMENTATION : secteur 220 V50 Hz. CONSOMMATION: 25 W sans extension.
+FUSIBLE : T 315 mA.
+Une étiquette fixée sous l'appareil reproduit les particulari-
+tés électriques mentionnées ci-dessus.
+MICROPROCESSEUR : 6809 E, 1 MHz.
+MÉMOIRE : - 256 Ko (interne) extensible à 512 Ko (sur connecteur extension RAM).
+80 Ko ROM (interne) extensible (sur connec-
+teur cartouche).
+(32 Ko pour BASIC 1; 32 Ko pour BASIC 5 1 2 : 16 Ko pour MONITEUR/CONTROLEUR FLOPPY/QDD).
+ÉCRAN : sortie RVB + son par prise péritélévision.
+MODE D'AFFICHAGE: 8 configurations possibles. NOMBRE DE COULEURS:16 couleurs sélectionnées parmi 4096.
+CODEUR MODULATEUR PAL : modèles équipés.
+FICHE SPECIFIQUE SPECIFIC DATA
+MAIN CHARACTERISTICS
+CABINET : Moulded material.
+KEYBOARD : Mechanical, 81 key includind five function
+keys.
+DIMENSIONS : Lenght 440 mm; Heigth 80 mm ; Depth 226 mm.
+WEIGHT : 2,6 kg.
+POWER SUPPLY : 220 V 50 Hz.
+CONSUMPTION : 25 Wwith no extension. FUSE : T 315 mA.
+Alabel on the bottom of the computer reiterates the above electrical data.
+MICROPROCESSOR : 6809 E, 1MHz.
+MEMORY : - 256 Kb (internal) extendable to 512 Kb (on RAM extension connector).
+80 Kb ROM (internal) extendable (on cartridge connector).
+(32 Kb for BASIC 1; 32 Kb for BASIC 512 ; 16 Kb for MONITOR/CONTROLLER FLOPPY/QDD).
+SCREEN : Audio + RGB output through PERITEL connector. DISPLAY MODE : 8 configurations possible.
+NUMBER OF COLOURS : 16 colours out of 4096.
+RF MODULATOR PAL : equipped types.
+PRISES ET COMMANDES CONNECTORS AND CONTROLS
+
+ UNITÉ CENTRALE - CENTRAL UNIT SCHÉMA SYNOPTIQUE - BLOCK DIAGRAM
+UNITECENTRALE UNIlECENIRAL- CENTRAL UNIT 11/1 CENTRAL UNIT
+UNITÉ CENTRALE CENThALUNIT
+11/3
+
+ ADAPTATION ADPL-VIDEO
+CARVOUCHEEDPROGRAMES CODE BAR RUTATOI N LENTE VT COM MUTATOI N BAROUE OMR C( ER)
+EXTENSOINEP
+HORLOGES ED SÉRAI LSI ATOI N MENANTE
+INTERNE
+FEL TUETEUR ENRECSTI REUR E D PROCRAM MES) MELANESON
+MÉLANGEUR
+MCIROPROCESEUR16( MOTSED31BTIS)
+MSEI NE FORMURANT
+MONOSTABLE
+MULTPILEXEURS M(UX)
+ADAPTATION ADEO AMPLFIEIR
+PRISE LEP
+ASTRE COUET CADRE
+REGISTRE COMMANDE
+R EOGTREBEGOPTI ANDEAFICHAGE REGISTRE PIXEL
+REGSITRES PARALES/OUE
+REGISTRE N° DE BANQUE
+REGSITRE TYPEEDARM AFCIHÉE
+RESET AFROID
+SÉLECTION RAM
+SÉLECTION ROM
+SÉQUENCEURS-CALCUL
+SON
+SON EXTENSION
+SUNTHESESONORE
+TATEMENT NAVON OPQTIUE TRAITEMENT VIDÉO
+TRANSFORMAOTIN ES SES MAR
+VDIEO COMPRENE
+CLOCLSIATOI N CLOCK RPPO(GNAM RECORDER)
+NOB AFCEN CUATON
+FAS TRANSFORMANS ORMATOIN VDIEO COMPOTSIE
+UNITÉ CENTRALE
+CENTRAL UNIT 1/4
+
+ CIRCUIT IMPRIME - CIRCUIT BOARD
+CONNECTEUR EXTENSION & EXTENSION CONNECTOR
+PRISF
+CONNECTOR
+물#
+¥3
+CARTOUCHE •CARTRIDGE 2g
+SON SOUND
+RU220
+GATE MODE PAGE
+MORTSUMOR
+÷Cette platine prévoit l'insertion de composants supplémentaires pour l'intégration
+Note: This board can receive suonlementary comnonents for intearation of a « RF Modulator PAl» on enuinned tunes
+UNITÉ CENTRALE Il/5 CENTRAL UNIT
+UNITÉ CENTRALE CENTRAL UNIT
+¥
+1 H 1= :
+«Codeur modulateur PAL »sur les modèles équipés
+¥
+대? 1N29
+CHGI
+PRISE PERITELEVISION SCART CONNECTOR
+MICRO-CLAVIER
+AEVAOADDM INDO
+PIA 6846
+STROBE
+10,
+10. +8
+INIT. ITES DE JEUX MODULATEURPAI CRAYON PR
+RE MODULATOR PAL LIGHT U
+PIA 6821 SYSTEME
+=
+{w
+142 -
+RA10
+
+ A6M4做3A2MA0A9AWCA能AM4始9AA0 CSMON 10
+‡68 6160E7DE/DF CSCART
+( +5V IODRSOE ODRS1B OSTEPB ODIREC OSIDSEL I S P R 1 IRDYB IWPRTB TRKOB
+INDXB IRDATB
+「 I MT O N B OMTONE
+VDATE OSPRB
+v CC
+SYNLT BLKLT MAO MAI
+H P AL 52I GND
+EXT2
+E XTI CLEG
+R M R AM
+CASINT(vidéo)
+CASEXT 26 27 35
+U
+GATE MODE PAGE (W1 10)
+UNITÉ CENTRALE CENTRAL UNIT
+OLOR BUS
+BVRI
+등 3 월 월2 놀
+O 9 1 - 9 9 2 2 6 W WY
+-NOTIONO
+(82M1)
+E(L M)I = 6089
+G MRR88594488446分849A04m4
+(62 M)I
+9789 VdI
+1289 Vdl
+8bb
+
+ II/8
+GATE MODE PAGE
+Registre mode da'ffichage-Display mode register
+GATE PALETTE
+CONTRÔLEUR ED FLOPYQ/ DD - FLOPYQ/ DD CONTROLER
+PIA 6821
+JEUX ET MUSIQUE
+MUSCI AND GAMES WI( 26)
+PIA6821 SYSTEMANDPRINTENTE (IN25) PIA TIMER 6846
+LBI RE - FRE E
+LOGICIEL CONTRÔLEUR DE FLOPPY/QDD FLOPPY/QDD CONTROLLER SOFTWARE 2pagesed91.okenparalèle-2X19, kni parale/
+RAM UTILISATEUR - USER MEMORY 32 pages de 16 koctets en parallèle 32 x 61 kb ni p a r a l l e l
+RAM UTILISATEUR - USER MEMORY
+PAGE 0 RÉSERVÉ AU SYSTÈME MONITEUR PAGE 0 RESERVED OT MONITOR SYSTEM
+RAM RÉSERVÉ AU SYSTÈME SYSTEM MEMORY
+MÉMOIRE ÉCRAN - SCREEN MEMORY 2 pages de 8 k octets en parallèle
+2 x 8 kb in parallel
+ESPACE ROM CARTOUCHE +LOGICIELS INTÉGRÉS ROM CARTRIDGE +INTERNAL SOFTWARE
+UNITÉ CENTRALE CENTRAL UNIT
+F (65535)10 E8DD (59392)10
+E7F (59391)10 E7F8 (59384)10
+E7F7 (59383)10 E7F® (59376)10 E7EB (59370)10 E7E8 (59368)10
+E7E7 (59367)10 E7E4 (59364)10
+E7DF (59359)10 E7DE (59358)10
+E7D (59357)10
+E7DC (59356)10
+E7DB (59355)10 E7DA (59354)10
+E7D9 (59353)10 E7DD (59344)10 E7CF (59343)10 E7CC (59340)10
+E7CB (59339)10 E7C8 (59336)10
+E7C7 (59335)10 E7CD (59328)10
+E7BF (59327)10 E7BD (59312)10
+E7AF (59311)10 ED (57344)10
+DF (57343)10 ABDO (40960)10 9F (40959)10
+61ĐD (24832)10
+60FF (24831)10 6DDD (24576)10
+5FFF (24575)01 5F40 (24384)10
+5F 3F(24383)10
+40DD (16384)10 3F(16383)10 DDDD
+ORGANISATION ED LA MÉMOIRE - MEMORY MAP
+MONITEUR - MONITOR
+2 pages de 6 ko en parallèle - 2 x 6 kb ni parallel
+INTERFACE MODEM
+INTERFACE EIE R$ 232
+Registescrayonpriqueeyi neLightpenandsystamregiser LBI RE - FRE E
+Regersti
+configuEart syst P-Seymts ergestri
+
+ SCHÉMA DE PRINCIPE - CIRCUIT DIAGRAM
+EXTRA versions edal platine UNTEI
+ns of the CENTRAL UNN
+国3 回m
+fff
+LOPPYFODD DINCONNECTO
+UNITFCENTRALE UNITEGENIKALI CENTRAL UNIT E N T R A L O N
+Il/10
+UNITÉ CENTRALE CENTRAL UNIT
+Il/11
+MODE PAGE ce cas C90 10 0pF ne' st pas
+ATOTE MODE
+b)Indice04
+es par rapport ua schéma de Gellwol reserafroidEXTpin47
+ne to the circuit dianram
+GATE MODE PAGE
+case the C09 10pF si not
+is comparated to hte cir
+mg
+
+ A) PRÉSENTATION GÉNÉRALE DE L'APPAREIL
+Bâti autour du microprocesseur 6809-E de MOTO- ROLA/EFCIS, cette unité centrale se distingue par l'utilisation d'une puissante unité de gestion et d'inté- gration: « LE GATE ARRAY MODE PAGE ».
+a) LA PROGRAMMATION DU GATE MODE PAGE
+Le GATE MODE PAGEcontient 6 registres program- mab
+les
+(voir
+" REGISTRES GATE MODE PAGE"
+(page: 31)). Ces registres contiennent tous les ren- seignements dont le système a besoin et assurent
+une polyvalence de ce composant pour plusieurs produits, avec différents types de RAM.
+b) L'INTEGRATION
+Le GATE MODE PAGE (IW10) intègre :
+—le décodage des adresses,
+- le traitement et le multiplexage des adresses RAM, - la génération synchro,
+- la gestion du crayon optique,
+y e s t i o n vidéo, pilotant le GATE
+PALETTE (IW32) : 16 couleurs parmi 4096.
+c) L'ACCES MODE PAGE
+Ce nouveau mode d'adressage RAM, (2 lectures de al RAM vidéo pendant la phasenon active: E- 0), per- met de faire le chargement des 16 bits d'info-vidéo, dans la table de transcodage, en 2 fois et de travailler dans un seul boîtier RAM (RAM INT.)
+d) LA TRANSFORMATION DES ADRESSES RAM
+Permet l'utilisation des blocs mémoire à capacité, (4464, 41256., par pages de 61 Ko, 8oKet d'assurer la polyvalence du GATE MODE PAGE, pour plusieurs produits, avec différents types de RAM.
+e) 256 Ko RAM
+- Répartis dans 8 boîtiers RAM de 256 K X 1 bits (42256), couplés, afin d'obtenir virtuellement, 1 bloc RAM de 256 Ko : RAM INT (RAM interne).
+- Possibilité de rajouter 256 Ko (boîtiers couplés) supplémentaires sur le connecteur extension RAM (BW13). Dans ce cas, o n a virtuellement 2 blocs RAM de 256 Ko: RAM INT et RAM EXT (RAM extension). Soit une capacité maxi de 512 Ko.
+f) 80 Ko ROM
+- Répartis dans 3 boîtiers EPROM :
+- EPROM (IW16) (27256) : 32 Ko BASIC 512, - EPROM (IW15) (27256) : 32 Ko BASIC 1,
+- EPROM (IW17) (27128) : 16 Ko MONITEUR/ CONTRÔLEUR DE DISQUE.
+Les deux basics peuvent être masqués par une car- touche de programmes de 16 Ko enfichable sur el connecteur cartouche (BW02).
+g) UN INTERFAÇAGE COMPLET
+— Les PIA 6846 (IW29) et 6821 (IW25) assurent :
+- la commutation des banques mémoires EPROM, - al génération et al lecture des signaux du lecteur- enregistreur de programme (LEP),
+- la gestion du crayon optique,
+- la gestion du connecteur imprimante parallèle centronics,
+- le MUTE: règle les problèmes d'interférences provoquées par l'utilisation des manettes de jeu ou de la souris lors d'une impression. MUTE = 0: validation de la sortie son du CNA, MUTE - 1 : inhibition,
+- la gestion du clavier (6846 et 6804).
+A) GENERAL HARDWARE DESCRIPTION
+The central processing unit is based around a MORO- ROLA/EFCIS 6809-E microprocessor, and itsdesign incorporates a performant GATE ARRAY MODE PAGE integration and handler unit.
+a) PROGRAMMING THE GATE MODE PAGE
+registers referot GATE MODE PAGE REGSITERS : REGISTERS: (page: 32)). These registers contain all data required by the system and ensure that the subbsystem is compatible with the various types of RAM used in several systems.
+b) INTEGRATION
+The GATE MODE PAGE (IW10) incorporates :
+- address decoding,
+-
+processing and multiplexing of RAM addresses, • synch generation,
+- light pen control,
+video handling, driving the GATE PALETTE (IW32) of 16 colors out of 4096.
+c) MODE PAGE ACCES
+This new method of adressing RAM (two readouts of video RAM during the non-active phase i.e E = 0) allows 16bits or video data to be loaded into the
+transcoding table in two phases, and to work within a single RAM package (RAM INT.).
+d) TRANSFORMATION OF RAM ADDRESSES
+This allows use of high capacity
+(4464, 41256, etc.) ni pages of 8K and 16 Kand ensures compatibility of the GATE MODE PAGE with the various types of RAM of several systems.
+e) 256 Kb RAM
+- This is divided into 8 RAM packages of 256 K by 1 bit (42256), linked in twos so as to provide 1virtual RAM block of 256 Kb, called RAM INT (RAM inter- nal).
+It is possible to add 256 Kb (8 linked packages) of supplementary memory on the RAM connector extension (BW13). This provides two virtual RAM blocks of 256 Kb called RAM INT and RAM EXT (RAM extension), giving a maxi capacity of 512 Kb. f) 80 Kb ROM
+- This is divided into 3 EPROM packages :
+- EPROM (IW16) (27256) : 32 Kb BASIC 512, EPROM (IW15) (27256) : 32 Kb BASIC 1,
+- EPROM (IW17) (27128) : 16 Kb MONITOR/DISK CONTROLLER.
+The two BASICs can be masked by a 16 Kb program cartridge which plugs into the cartridge connector (BW02).
+g) COMPLETE INTERFACING
+- The PIA 6846 (IW29) and 6821 (IW25) handle :
+- switching between the EPROM memory banks,
+- generation and readout of signals from the pro- gram recorder (PR),
+- the light pen,
+the Centronics parallel printer connector,
+the MUTE, wich solves interference problems caused by the use of joysticks or the mouse during printing. MUTE = 0: validation of the audio output of DAC, MUTE - 1: inhibition,
+- the keyboard (6846 and 6804).
+11/12
+UNITE CENTRALE CENTRAL UNIT
+PRINCIPE DE FONCTIONNEMENT OPERATING MODE
+
+ - Le PIA 6821 (IW26) gère: les manettes de jeu, la souris et la synthèse son (conversion numérique- analogique (CNA), d'un mot programmé sur PBO- PB5).
+CONNECTEUR EXTENSION UNIVERSEL.
+- PRISES SCART (PÉRITEL) et SON (CINCH).
+CODEUR MODULATEUR PAL (modèles équipés). - CONTRÔLEUR ET PRISE LECTEUR DE DISQUE.
+B)PECOPASEDSORFESESROM Le Gate Mode Page pilote :
+PaCeoglue0 0-3 1,1envoielesignalCSCART, afin d'aiguiller cette sélection sur les 2 EPROM BASIC
+c umandeparP2dPAIN29)a unesmple logique :
+- The PIA 6821 (IW26) handles: the joysticks, the mouse and audio synthesis (digital/analog conver- sion or DAC), of a word programmed on PBO-PB5).
+- GENERAL PURPOSE EXTENSION SOCKET.
+- SCART (PERITEL) and AUDIO (CINCH) sockets.
+-RF MODULATOR PAL (equipped types). - CONTROLLER and DISK DRIVE SOCKET.
+B) ROMANDINPUT/OUTPUT ADRESS DECODING
+The Gate Mode Page handles :
+1) Selection of the EPROM packagesusedfor the logic space (0000-3FFF). It sends the CSCART signal, in order to direct this selection towards either the 2EPROM BASICs or program cartridge. The choice is controlled by PP2 on the PIA (IW29) via a simple logic:
+PP2 CSCART
+Do
+(IW 16) BASIC 1
+(IW 15)
+CARTOUCHE CARTRIDGE (BW 02)
+PP2 —0 : Cartridge selected.
+PP2 - 1 : EPROM BASIC 1 and EPROM BASIC 512
+selected.
+PP2=1: EPROM EASeiT or ERPOM BACSI 512
+2bo rsEP de32Koe ctueSurA14,On programme une bascule « D » (contenue dans le registre 74LS173(IW20)) par une écriture dans l'es-
+pace cartouche. C'est l'état du fil d'adresse de poids faible du microprocesseur, AO, qui est mémorisé par
+SurA14desEPROMBASIC1BEBASIC512,appligue
+La sélection d'une des 2 EPROM s'effectue sur OE selon le même principe que précédemment: A1 est mémorisé par D2, il est envoyé sur OE de l'EPROM BASIC 512. A1 est mémorisé par D3, il est envoyé sur OE de l'EPROM BASIC 1.
+The switching of the 16 Kb banks in the two 32 Kb EPROM packages takes place on A14. A « D » flip-flop (contained in the 74L173 register (IW20)) is pro- grammed by writing it into the cartridge space. The state of the low significance address wire of the microprocessor, AO, is memorized by the D1 flip-flop as a result of this writing. It is applied on A14 of the BASIC 1and BASIC 512 EPROMs.
+Theselection of one of the two EPROMs take place on OE following the same principle: A1 is memori- zed by D2 and sent on OE of the BASIC 512 EPROM. A1 is memorized by D3, and sent on OE of the BASIC 1 EPROM.
+BASIC 512 (IW 16)
+BASIC 1 CS (IW15)
+Even address writing (A0 - 0) :
+A14 = 0: lower part of EPROM addressed. Odd address writing (A0 - 1) :
+A14 - 1: upper part of EPROM addressed
+A13
+CSCART R/W
+(IW 20)
+D1 Q1 D2
+Q2 -D3
+Q3
+HEcpOE
+Ecriture adresse impaire (A0 —1) :
+A14 - 1 : partie haute EPROM adressée.
+UNITÉ CENTRALE 1/13 CENTRAL UNIT
+
+ 11/14
+2) La sélection de l'EPROM MONITEUR/CONTRÔ LEUR (IW17). lI envoie le signal CSMON.
+L'espace d'adressage alloué au moniteur est de 8 Ko. La taille nécessaire pour le moniteur/contrôleur étant de 16 Ko, une commutation de banque est à réaliser sur le fil d'adresse haute du boîtier EPROM (A13), pour accéder aux 8 Ko supplémentaires.
+C'est le PIA 6846 (IW29) qui envoie par PP4, le signal de commutation de ces 2 banques.
+PP4 = 0: partie basse de la ROM accessible. PP4 - 0: partie haute de la ROM accessible.
+3) La sélection des boîtiers Entrées/Sortie :
+E7CO/E7CF : (E7CX) sélection des boîtiers PIA 6846 (IW29) et 6821 (IW25), (IW26).
+2) The selection o f the MONITOR/CONTROLLER EPROM (IW17). It sends the CSMON signal.
+T h Asthesirenecessaryforhemonto/ ontroler is 16Kb, abank switching hastobe carried outon
+the high address wire of the EPROM package (A13),
+to access the extra 8 Kb.
+The PIA 6846 (IW29) sends the switching signal of these two banks through PP4.
+PP4 - 0 : lower part of ROM accessible. PP4 - 1 : upper part of ROM accessible.
+3)
+Selection of the INPUT/OUTPUT packages :
+E7CO/E7CF : (E7CX) selection of the PIA 6846 (IW29)
+and 6821
+(IW25), (IW26) packages.
+E7D0/E7D9 :selection
+of the
+FLOPPY/QDD Controller package (IW24)
+E7DA/E7D8 :(CSPAL) selection of hte Palette package (IW32).
+E7DE/E7DF: no used
+EX : extension selection...
+C) RAM MANAGEMENT
+a) ADDRESS TRANSFORMATION
+The use of high capacity RAM packages has led to address transtormation in order to have access to the full addressable area of packages.
+ADRESSES from 0000 to 3FFF), whereas that alloca t e d i n t h e memory map is only 40 Kb (LOGICAL ADDRESSES from 4000 to DFFF).
+In order to organise RAM and provide access to its entire physical space, the three most significant bits of the logical address A15, A14 and A13 are transfor- med, and 2 extra bits, RA17 and MU8, are created. The 3 transformed bits become RA15, RA14 and RA13 (see block diagram) and are dependent on the form bit (within the RAM ADDRESS TRANSFORMA- TION block) from the required bank number and the address requested by the microprocessor (logical address.
+The creation of 2 extra bits (RA17, MU8) is necces- sary to work in the RAM at physical addresses higher than FFFF; it is directly dependent on the bank
+E7D0/E7D9 : sélection du boîtier FLOPPY/QDD (IW24)
+Contrôleur
+E7DA/E7D8 :(CSPAL) sélection du boîtier Palette (IW32).
+E7DE/E7DF :non utilisé.
+EXXX :
+sélection extension....
+C) GESTION RAM
+a) TRANSFORMATION DES ADRESSES
+L'utilisation des boîtiers RAM à grande capacité conduit à opérer une transformation des adresses, afin de pouvoir accéder à tout l'espace adressable des boîtiers.
+En effet, l'espace adressable des boîtiers (RAM INT RAM EXT) (voir: A) e) est de 256 Ko (ADRESSES PHYSIQUES : d e 0000 à 3FFFF), celui alloué d a n s la MAP MEMOIRE est seulement de 40 Ko (ADRESSES LOGIQUES : de 4000 à DFFF).
+Afin d'organiser la RAM et d'accéder dans celle-ci à tout son espace physique, on transforme les 3 bits de poids fort de l'adresse logique A15, A14, A13, et on crée 2 bits supplémentaires RA17 et MU8.
+Les 3 bits transformés deviennent RA15, RA14, RA13 fonction d u b i t forme (interne au bloc " TRANSFORMATION ADRESSES RAM »), du N° de banque désiré et de l'adresse demandée par le microprocesseur (adresse logique).
+La création de 2 bits supplémentaires (RA17, MU8) est nécessaire pour travailler dans la RAM à des physiques supérieures à FFFF, elle est directement fonction du N° de banque.
+ADRESSES PHYSIQUES (envoyées sur MAO-MA8) PHYSICAL ADDRESS (sent on MAO-MA8)
+RA17MU8RA15RA14RA13A12A11A10A9 A8 A7 A6 A5 A4
+A 3 A 2 A 1 AO MSB
+LSB
+MU8 = A16 : (voir : C) d) POLYVALENCE) (See: C) d) COMPATIBILITY)
+Ainsi, par cette méthode entièrement transparente à l'utilisateur, la RAM est vue comme 32 pages de 16 Ko (avec 512 Ko) ou 16 pages de 16 Ko (avec 256 Ko).
+On accède aux pages supérieures en programmant le N° de banque désiré dans E7E5. Ce registre a une influence directe sur la transformation des adresses.
+UNITÉ CENTRALE CENTRAL UNIT
+Thus RAM is perceived a s 32 pages (with 512 Kb), or 16 pages (with 256 Kb) by virtue of this method which is completely transparent to the user.
+The top p a g e s are accessed by programming the bank required in E7E5. This register has a direct influence on the transformation of addresses.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 11/24
+UNITÉ CENTRALE CENTRAL UNIT
+OMTON B: Commande moteur disquette, actif à l'état
+bas.
+ODIREC: Commande de direction du moteur pas a pas (état haut, direction piste 0 extérieur du disque, état bas
+direction interieur du disque).
+OSTE PB : Impulsions de commande du moteur p a s pas (actif àl'état bas).
+OWGB : Commande de validation d'écriture (actif à l'état bas).
+Etats particuliers du lecteur :
+IMTONB: (non utilisé) information de commande moteur disquette (actif é t a t bas). Connecte sur les platines d'indice 04 (voir: 11/11) mais non géré par le soft.
+INDXB: Détection d'index (actif à l'état bas).
+ITRKOB: Détection de la piste 0du lecteur (actifà l'état bas).
+IWPRTB : Détection de al protection en écriture (actif à l'état bas).
+Les transferts de donnees :
+IRDATB: Ligne de transmission en lecture des données séries (actif à l'état bas).
+OWDATB : Ligne de transmission en écriture (actif à l'état bas).
+-7 ICSB E7D0-D9 -9 1A2
+DATA
+1 9 DO
+IRZGB Reset
+OMTONB : Diskette motor control, active ni the low state.
+A' CQUASOI N DES OD DYNAMQI UES ED ISCB
+02 ns mni y IAO-IA2
+2 0 ns m i n IRWB
+|
+2) DYNAMIC FEATURES OF DATA ACQUISITION
+270 ns min
+120 ns min
+30 sn mni! 15 ns mni
+DO-D7 ECRITURE
+DO-D7 LECTURE READ
+320 ns min
+20 ns maxi
+i s 5ns mni 80 ns max
+a 5nsm ni
+8888888 65 ns max
+direction inside of disk.
+OSTEPB : Step-by-step
+motor (active in the low state.
+control
+impulses
+OWGB: Write validation control (active in the low state).
+Particular states of the drive unit
+tin cive tot used Conet motr come intorms (see: 11/11) but not handled by the soft.
+INDXB: Index detection (active ni the low state).
+ITRKOB : Detection of track 0 of drive unit (active in the low state).
+IWPRTB : Write protection detection (active in the low state).
+IRDYB: Disk feed motor rotation data at its nominal value (active ni the low state).
+Data transfer
+IRDATB: Transmission line in playback of data in series (active in low state).
+OWDATB : Transmission line ni writing (active ni olw state).
+ODRSOB 39 ODRS1B 38 SIDESEL 35 OMTONB 26
+ODIREC 36 OSTEPB 37
+IWPRTB 32 4 IRDYB 33/ ITRKOB 3 1 NI D X B 3 0 - OWGB 24
+OWDATE%92
+ENREL TALE
+CONTROLEUR DE DISQUETTE DISK CONTROLLER
+
+ 1-00
+-0-0
+-00.
+3) ORGANISATION INTERNE DU THMFC1 a) DESCRIPTION DES REGISTRES Registres de commandes :
+CMDO
+Les bits 7et 6sont à0pour assurer al compatibilité avec les futures versions de contrôleur.
+- Bit 5 FM :
+- Etat 0 codage MFM. - Etat 1codage FM.
+- Bit 4 ENSYN: Etat 1 validation de la détection des mots de synchro.
+- Bit 3 NOMCK :
+- Etat 0 inhibition de la synchronisation du sépara-
+stable à la fréquence nominale. (suivant le contenu du registre WCELL). Utilisable donc en écriture mode "POLLING" (formatage) ou en comptage
+- Etat 1validation de la synchronisation du sépara- teur. Cette commande est utilisée pour les fonc- tions d'écriture et de lecture.
+utilisante (mode « POLLING »).
+lecture secteur.
+CMD1
+Le bit 7 est un bit de compatibilité.
+- it 5LGO: btiedpods fable ongue esteteur.
+3. INTERNAL ORGANIZATION OF THE THMFC1
+a) DESCRIPTION OF THE REGISTERS
+Control registers
+CMDO
+Bits 6 and 7 are at 0 to ensure compatibility with future versions of the controller.
+- Bit5FM:
+- State 0 MFM coding
+- State 1 FM coding
+- Bit 4ENSYM: State 1Validation of detection of synch words.
+Bit 3 NOMCK :
+- State 0 Inhibition of the separator synchroniza tion with the data series coming from the drive unit. This control makes it possible to obtain a stable clock at norninal frequency (following the
+content of the WCELL register). It can therefore
+be used ni POLLING (formatting) mode writing
+- s e n T h e c o n e e
+f o r n o e d t h wi t e functions.
+(POLLING mode).
+- Bit 1 IFRW - Bit 0 IFDA: Control unit operational code; 00 reset, 01 sector write, 10 address read, 1 sector read
+CMD1
+Bit 7 is a compatibility bit.
+- Bti 6OGL IS, secor lengthebt.
+LG1 LGO
+Longueur secteur
+128 mots/secteur 256 mots/secteur 512 mots/secteur 1024 mots/secteur
+LG1 LGO
+- Bit4SIDE:
+- 0side0ofdisk
+Sector length 128 words/sector 256 words/secto 512 words/sector 1024 words/sector
+- bit 4 SIDE :
+-Oface0dudisque.
+- 1 face 1 du disque.
+Les bits 4, 5 et 6 sont utilisés par le bloc compa-
+rateur pour la recherche du secteur.
+-birturede0manoseconde8437, nanosecondes par pas de 62,5 ns.
+- bit 0 DSYRD : Actif à l'état 1, permet d'inhiber la
+- 1side1ofdisk
+Bits 4, 5 and 6 are used by the comparator block for sector search.
+g e 104315anseondsin16301625g, - Bit 0 - DSYDRD : active at state 1, making ti possi-
+ble to inhibit character synchro detection when the READY signal IRDYB from the drive unit is inactive (see block diagram).
+detection R EA
+synoptique). CMD2
+caracteres quand le signal RD issudutecteurstinaci (roir
+CMD2
+This control register has a different function depend ing on whether the drive unit uses FLOPPY or QDD
+- Bti ISEL: not used
+-
+State 0 Selection side
+0 for
+floppy, or
+motor control active for QDD.
+- State 1 Selection side 1 for floppy, or motor control inactive for QDD.
+- Bit5DIRECB:
+- State 0 Direction control towards track 0 of the
+-Sopyl Driecoitn control otwards het nisdie fo For dei D Da ht si control si not used.
+- Bit4STEP:
+- State 0 Step control inactive for floppy. - For ht e So ht si control si not used.
+UNITÉ CENTRALE CENTRAL UNIT
+- bit 7 et 3 : Non utilisés.
+- bit 6 SISELB :
+- Etat 0sélection face 0 pour el floppy ou commande moteur active pour le QDD.
+- Eat triative pour peorels Hopyuocommande
+-bit5DIRECB
+- Eat Ocommande de direction vers la piste 0 du floppy.
+- Etat 1commande de direction vers l'intérieur du dis-
+Nuc.
+Cette commande n'est pas utilisée pour le QDD. -bit4STEP:
+- Etat 0 commande de pas inactive pour le floppy. - Etat 1 commande de pas active.
+Commande non utilisée pour le QDD.
+11/25 |
+
+ 11/26
+- bit 2 MTON :
+- Etat 0 commande moteur inactive pour le floppy. - Etat 1commande moteur active.
+Commande non utilisée pour le QDD.
+- bit 1 et 0 DRS1, DRSO: Commandes de sélection de drive pour le floppy et le QDD, actives à l'état .1
+Registres d'état : STAT 0
+- bit 7 BYTE: Actif à l'état 1, ce bit est l'image de lhorloge caractères, Il est positionne a 1 lorsqu'un
+mot est assemblé dans le registre RDATA en mode lecture
+lorsque un nouveau c a l a d e r r demandé dans le registre WDATA en mode écri- ture.
+Ce bit est repositionné à 0 par une lecture ou une écri- ture des registres RDATA et WDATA.
+- bit 6 et 5: Toujours positionnés à 0.
+- bit 4 END: Actif à l'état 1, ce bit indique que le contrôleur termine l'opération en cours.
+- bit 3 FREE: Actif à l'état 1, ce bit indique que le contrôleur a terminé l'opération.
+- bit 2 CRCER : Actif à l'état 1, indique une erreur du contrôle CRC (checksum de la zone identification ou données).
+- bit 1 DREQ: Actif à l'état 1, indique qu'un carac- tère est assemblé en mode lecture ou qu'un carac- tère est demandé en mode écriture.
+Ce bit est repositionné à 0 par une lecture ou une écriture des registres RDATA et WDATA. L'infor- mation DREQ e s t a c t i v e uniquement lorsque le contrôleur exécute une opération dite « intelli- gente » (lecture adresse, secteur ou écriture sec- teur), alors que l'information BYTE est active quel
+que soit le mode de travail du contrôleur (ex: mode POLLING en formatage).
+- bit 0 SYNC : Actif à l'état 1, indique une détection synchro. Les contenus des registres RDATA et WCLK sont mélangés et comparés à la configuration synchro. Ce bit est positionné lorsque le résultat de cette comparaison est vrai.
+STAT 1
+Ce registre d'état contient des informations différentes selon le "drive" utilisé FLOPPY ou QDD.
+- bit 7 : Positionné à O.
+- bit 6 INDX : Etat 1, détection d'index pour le floppy et présence disquette pour le QDD.
+- bit 5 DKCH: Etat 1, information de changement de disquette. Non utilisé pour le QDD.
+-bit4MTON:Cebitestl'imageinverséedelacom- mande moteur OMTONB
+- bit 3 TRKO: Etat 1, détection de l'information piste O pour le floppy et l'information de connexion d'un
+-bui el opy e t information ed protection ficheir - bit 1RDY : Etat 1, information "READY" provenant du floppy ou du QDD.
+- bit 0: Non attribué.
+Registres d'écriture et de lecture WDATA - RDATA
+Ces registres 8 bits sont utilisés comme tampon pen- dant les opérations de lecture et d'écriture. En lecture
+UNITÉ CENTRALE CENTRAL UNIT
+-
+Bit 2 MTON :
+- State 0 Motor control inactive for floppy. - State 1 Motor control active.
+For the QDD this control is not used
+- Bits 1 and 0 - DRS1, DRSO : Drive selection control for floppy and QDD, active at state 1.
+State registers STATO
+- Bit 7BYTE : Active at state .1 This bit is the image of the clock characters ; it is positioned at 1when a word is assembled in the RDATA register in the read a n o when a new character IS requested in the WDATA register ni the write mode.
+This bit is repositioned at 0 by a read or write of the RDATA and WDATA registers.
+-
+Bits 5 and 6: Always positioned at 0.
+-
+Bit 4 END : Active at state 1. This bit indicates that
+the control unit is completing the operation in pro- Less
+-
+Bit3FREE:
+Active at state .1 This bit indicates that control unit has completed the operation.
+-
+Bit 2 CRCER : Active at state 1. This bit indicates a CRC control error (checksum of the identification
+or data zone).
+- Bit 1DREQ : Active at state 1. This bit indicates that a character is assembled in the read mode or is requested in the write mode. This bit is reposi- tionedat0forreadingor writingtheRDATAand WDATA registers. DREQ data is active only when the control unit is carrying out a so-called « intelli- gent » operation (adress read, sector read or sec- tor write), when the BYTE information is active, whatever the control unit's working mode (in the POLLING mode in formatting).
+Bit 0 SYNC : Active at state 1. It indicates a syn- chro detection. The contents of the RDATA and WCLK registers are mixed and compared at the synchro configuration. This bit is positioned when the result of the comparison is true.
+STAT1
+- Bit7:Positionedat0.
+- Bit 6 INDX: State 1, index detection for floppy, and diskette presence for QDD.
+- Bit 5 DKCH : State 1, change of diskette data. Not used for QDD.
+- Bit 4 MTON : This bit is the inverted image of the motor control OMTONB.
+- Bit 3 TRKO : State .1 Detection of track 1 data for floppy, connection data for QDD.
+- Bit 2 WPRT : State .1 File protection data for both the floppy and the QDD.
+- Bit 1 RDY : State 1. READY data from the floppy and the QDD.
+- Bit 0 : Not allocated.
+WDATA - RDATA read and write registers
+These 8-bit registers are used a s buffers during the read and write operations. In read mode the data are
+
+ les données sont transmises en parallèle du registre à décalage vers le registre de lecture et inversement en écriture.
+Registres piste et secteur WTRCK - WSECT
+Ces registres sont chargés, avant toute opération con- trôleur, avec les numéros de piste et de secteur recher- chés. Le contrôleur s e charge ensuite de comparer ces informations avec celles présentes sur la disquette dans la zone d'identification.
+Registre horloge écriture WCLK
+Ce registre 8 bits contient la configuration horloge utili- sée en écriture pour les données (FF) et pour les mots de synchro caractères (OA).
+Registre largeur de cellule WCELL
+transmitted parallel to the shift register, towards the read register, and inversely in the write mode.
+WTRCK - WSECT track and sector registers
+Before any operation involving the control unit, these registers are loaded with the numbers of the track and sector required. The control unit then compares these data with those on the diskette in the identifica- tion zone.
+WCLK Clock writing register
+This 8-bit register contains the clock configuration used in the write mode for the data (FF) and for the character synchro words (OA).
+WCELL cell width register
+- bit 7NRM: Ce bit, associé àla commande de précom-
+- Bit 7 NRM : This bit, when associated with the pre- pensation, permet de modifier les caractéristiques du
+compensation control, makes it possible to modity séparateur de données lorsque la lecture s' effectue
+the characteristics of the data separator when the sur les pistes intérieures de la disquette.
+inside tracks of the diskette are being read.
+- Etat 0, modification des caractéristiques du sépa-
+State 0, modification of the separator's character- rateur. ISTICS
+- Etat 1, fonctionnement normal du séparateur.
+- bits 6 à 0: Ces 7 bits permettent d'initialiser le comp-
+Bits 6 to 0: These seven bits make it possible to initialize the separator's internal counter with a teur interne du séparateur avec une valeur dépendant
+value dependent on the coding mode used.
+du mode de codage utilise.
+e. g. NI MFM coding, when the unit cell of data is Exemple: En codage MFM la cellule unitaire d'infor-
+4 us, the separator's counter is working at 2us, or mation est de 4us, le compteur du séparateur tra-
+one half this value. The counting step
+vaille à la moitié de cette valeur; soit 2 us. Le pas de
+mined by the separator clock : either 1/16 MHz = comptage est déterminé par l'horloge du séparateur
+62.5 ns: the value to load into the register is then soit 1/16 MHz = 62,5 ns. La valeur à charger dans le
+2,000 ns/62.5 ns = 32 - 1= 31 ; or 1F in hexadeci- registreestdonc2000ns/62,5ns=31-1=31soit
+The unit of 31 to be subtracted can be en héxadécimal.
+explained by the fact that the system counts down s'explique par le fait quele système décompte de 31
+from 31 to 0, which corresponds to 32 steps of à 0 ce qui correspond à 32 pas de comptage pour un
+counting for one complete cycle.
+b) DESCRIPTION DES FONCTIONS INTELLIGENTES
+Ces fonctions sont au nombre de 3 et programmées par les bits IFRW et IFDA du registre de commande CMDO (lectureadresse,lecturesecteuretcrituresecteur). Le séquencement de ces commandes est géré par le con- trôleur et l'acquittement de ces opérations suppose que le format d'enregistrement réponde aux spécifications suivantes:
+b) DESCRIPTION OF THE INTELLIGENT FUNCTIONS
+These functions are three in number, programmed by bits IFRW and IFDA of the control register CMDO (address read, sector read, sector write). Sequencing of these controls is handled by the control unit, and i the operations are to be effected, the recording for- mat must correspond to the following specifications:
+233789
+00 A1/0A FE TRK SID SECT
+LGT
+CRC ESPACE
+Champ identification
+A1/0A FE TRK SID
+SECT LGT CRC SPACE
+Identification Field
+Dat Feidl
+Champ
+00 A1/0A
+CRC BYT ESPACE
+Champ données
+I données 10 1 12 13 14 15 16
+0 A10/A
+BF DATA FEILD CRC BYT 10 1 12 13 14 15
+SPACE
+Rep. Nombre de caractères
+12
+2 22
+Caractère
+0 0
+Al horloge DA FE
+Désignation Item
+Synchro. bit
+Synchro. caractère 2 Adresse début identif.
+Numéro piste
+Numéro face
+Numéro secteur
+Longueur secteur
+Control CRC
+Espaces
+Character number
+2
+Character
+00
+A1 clock AO FE
+Description
+Synchro. bti Synchro. character Ident. address
+Track number Sdie number Sector number Sector length CRC control Spaces
+UNITÉ CENTRALE CENTRAL UNIT
+11/27
+
+ 1~ Ls라
+1l/28
+Rep.
+10 1 12
+31
+15 16
+Nombre de caracteres
+Caractère
+00
+Désignation Item
+Synchro. bti
+Synchro. caractère
+Adrese début donées 21
+Champ données 13
+Contrôle CRC 41 Inhibition poret écriture 51 Espaces 16
+Character number
+Character
+Description
+Synchro. bti Synchro. character Dat adres
+Dat fiedl
+CRC control Inhi. write gate
+Spaces
+Al horloge AD FB Correspond à la longueur secteur
+Varaibel seolnel
+0 1AcolckAO BF Corresponds ot
+Varies accord. to drive in use
+Lecture d'une adresse.
+opérations suivantes :
+1) Recherche de 3caractères de synchro. successifs. 2) Comparaison du caractère suivant avec al valeur FE. 3) Activation de la sortie DREQ.
+eLcondes FATA euelecture premsie laregistra sortie DREQ pour la lecture d'un nouveau caractère.
+Le transfert de donnée doit être effectif dans un délai de 25 us après l'activation de DREQ. Dans le cas contraire le contrôleur calcule les 2 octets de contrôle CRC cor- respondant au Noctets de donnée transférés et posi- tionne le bit CRCER (bit 2 de STATO).
+Lecture d'un secteur
+Après initialisation, le contrôleur effectue les opéra- tions suivantes :
+1) Recherche de 3 caractères de synchro. successifs. 2) Comparaison du caractère suivant avec la valeur FE. 3) Comparaison du caractère suivant avec le contenu
+du registre de piste WTRCK.
+4) Comparaison du bit 0 du caractère suivant avec le bit SIDE de CMD1 (bit 4).
+5) Comparaison du caractère suivant avec le contenu du registre secteur WSECT
+6) Comparaison des bits 0 et 1du caractère suivant avec les bits LGO LG1 du registre CMD1.
+7) Contrôle des 8 caractères de la zone d'identifi- cation. (Le contrôleur compare le CRC calculé avec le CRC écrit sur la disquette.)
+8) Attente du contrôleur pendant 27 caractères.
+9) Recherche de 1 caractère de synchro.
+Le contrôleur doit trouver le caractère de synchro dans un délai correspondant à 42 caractères, dans le cas contraire la séquence de recherche est réinitialisée.
+10) Activation de la sortie DREQ
+11) Le CPU répond en lisant le registre RDATA, ce qui permet de réactiver DREQ et de transférer ainsi les caractères du champ de données.
+Ecriture d'un secteur
+L'opération d'écriture commence par la o n a s e d e r e c h e r c h e des identificateurs correspondant aux 7 premières étapes du paragraphe précédent. Ensuite le contrôleur effectue les opérations suivantes:
+8) Attente du contrôleur pendant un délai correspon- dant à la lecture de 22 caractères;
+UNITE CENTRALE CENTRAL UNIT
+Address read
+.1Saoin ofr thre sucesvie synchronzinig charac-
+2. Comparison of the next character with the FE value,
+3. Activation of the DREQ output.
+P DATAdataTeg ert hsonatiestheDRECoupu to be reactivated so that another character can be read.
+Sector read
+After initialization the control unit carries out hte fol- lowing operations :
+1. Search for three successive synchronizing char- acters.
+2. Comparison of the next character with the FE valle.
+3. Comparison of the next character with the con- tent of the WTRCK track register.
+4. Comparison of bit 0 of the following character with bit SIDE of CMD1 (bit 4).
+5. Comparison of the following character with the content of the WSECT sector register.
+6. Comparisonofbits0and1ofthefollowingchar- acter with bits LGO and LG1 of the CMD1 register.
+7. CRC control of the 8 characters in the identifica- tion zone (the control unit forms the CRC calcu- lated with the CRC written on the diskette).
+8. The control unit waits for 27 characters.
+9. Search for one synchronizing character.
+The control unit must find the synchronizing char- acter within a delay corresponding to 42 charac-
+10. 1.
+ters ; if not, the search sequence is reinitialized. Activation of the DREQ output.
+The CPU replies by reading the RDATA register. thereby enabling the DREQ to be reactivated and the characters from the data field to be trans- ferred.
+Sector write
+The writing operation begins with the search phase for the identifiers, which is the same as the first 7 stages of the previous paragraph. Then the control unit carries out the following operations :
+8. The control unit waits for the time it takes to read 2 characters.
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

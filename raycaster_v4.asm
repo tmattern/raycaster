@@ -12,6 +12,13 @@ SCREEN_H    EQU  200    ; Hauteur écran
 MAP_W       EQU  32     ; Largeur map
 MAP_H       EQU  24     ; Hauteur map
 CENTER_Y    EQU  100    ; Centre vertical écran
+RENDER_W    EQU  128    ; Largeur de la fenêtre de rendu
+RENDER_X    EQU  32     ; Position X du début du rendu (160-128=32)
+CENTER_X    EQU  64     ; Centre horizontal de la fenêtre de rendu (128/2)
+; Constantes pour la mini-map
+MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
+MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
+
 
 ; Organisation mémoire à partir de $A000
         ORG  $A000
@@ -54,12 +61,13 @@ START
         TFR  A,DP
         
         ; Init mode vidéo
-        JSR  VIDEO_INIT ; Nouveau - appel init vidéo
+        JSR  VIDEO_INIT ; appel init vidéo
         
         JSR  INIT       ; Initialisation
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
+        JSR  DRAW_MINIMAP
         BRA  MAIN_LOOP
 
 
@@ -105,23 +113,23 @@ RAYCAST_FRAME
         CLRA
         STA  <CURR_COL  ; Débute colonne 0
 
-COL    ; Pour chaque colonne
+COL     ; Pour chaque colonne de la fenêtre de rendu
         JSR  CALC_RAY   ; Calcule direction rayon
         JSR  RAYCAST    ; Lance rayon
         JSR  DRAW_COL   ; Dessine colonne
         
         INC  <CURR_COL
         LDA  <CURR_COL
-        CMPA #SCREEN_W
+        CMPA #RENDER_W  ; Compare avec 128 au lieu de 160
         BNE  COL
         RTS
 
 CALC_RAY
         LDA  <CURR_COL
-        SUBA #80        ; Centre écran
-        ASRA            ; /2 pour FOV
-        ADDA <ANGLE     ; + angle joueur
-        STA  <TEMP      ; Sauvegarde angle dans variable temporaire
+        SUBA #CENTER_X  ; Centre de la fenêtre de rendu (64) au lieu de 80
+        ASRA           ; /2 pour FOV
+        ADDA <ANGLE    ; + angle joueur
+        STA  <TEMP     ; Sauvegarde angle
         
         LDX  #SINTAB
         LDA  A,X        ; sin(angle)
@@ -230,6 +238,7 @@ DIST
 DRAW_COL
         ; Init pointeur écran
         LDA  <CURR_COL
+        ADDA #RENDER_X  ; Ajoute offset pour alignement à droite
         LSRA
         LDX  #VIDEO_MEM
         LEAX A,X
@@ -332,6 +341,71 @@ GEN_LOOP
         STX  SKY_ADDR
         STX  WALL_ADDR
         STX  FLOOR_ADDR
+        RTS
+
+; Routine d'affichage de la mini-map
+DRAW_MINIMAP
+        ; Pointeur vers début de la map
+        LDX  #MAP
+        ; Pointeur écran (début de l'écran)
+        LDY  #VIDEO_MEM
+        
+        ; Pour chaque ligne de la map
+        LDB  #MAP_H     ; 24 lignes
+DMAP_LOOP
+        PSHS B          ; Sauve compteur de lignes
+        
+        ; Pour chaque colonne
+        LDA  #MAP_W     ; 32 colonnes
+DMAP_COL
+        ; Lecture de la valeur de la map
+        LDB  ,X+        
+        BEQ  DMAP_EMPTY ; Si case vide (0)
+        
+        ; Case pleine : dessiner un point blanc
+        LDB  #$FF       ; Couleur blanche
+        BRA  DMAP_DRAW
+        
+DMAP_EMPTY
+        LDB  #$00       ; Case vide en noir
+        
+DMAP_DRAW
+        ; Dessine 2 pixels verticaux
+        STB  ,Y         ; Pixel ligne 1
+        STB  80,Y       ; Pixel ligne 2 (Y+80)
+        
+        LEAY 1,Y        ; Pixel suivant
+        DECA            ; Décrémente compteur colonnes
+        BNE  DMAP_COL   ; Continue si pas fini la ligne
+        
+        ; Passe à la ligne suivante
+        LEAY 80+48,Y    ; Saute une ligne (80) + reste de la ligne (48)
+        
+        PULS B          ; Récupère compteur de lignes
+        DECB            ; Ligne suivante
+        BNE  DMAP_LOOP  ; Continue si pas fini toutes les lignes
+        
+        ; Affiche position joueur
+        JSR  DRAW_PLAYER
+        RTS
+
+; Routine pour afficher la position du joueur sur la mini-map
+DRAW_PLAYER
+        ; Calcul position X du joueur sur la mini-map
+        LDA  <PLAYERX+1  ; Partie entière de X
+        LDX  #VIDEO_MEM
+        LEAX A,X        ; X + offset = position horizontale
+        
+        ; Calcul position Y
+        LDA  <PLAYERY+1  ; Partie entière de Y
+        LDB  #160       ; Largeur ligne = 80 * 2 (2 pixels de haut)
+        MUL             ; D = A * B = Y * 160
+        LEAX D,X        ; Ajoute offset vertical
+        
+        ; Dessine le joueur en rouge
+        LDA  #$F0       ; Rouge vif
+        STA  ,X         ; Position joueur
+        STA  80,X       ; Pixel du dessous
         RTS
 
 VIDEO_INIT

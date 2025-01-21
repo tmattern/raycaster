@@ -10,6 +10,7 @@ VIDEO_MEM   EQU  $0000  ; Adresse mémoire vidéo (RAMA $0000-$1FFF)
 RAMB_BASE   EQU  $2000  ; Adresse RAMB ($2000-$3FFF)
 SCREEN_W    EQU  160    ; Largeur en mode 160x200
 SCREEN_H    EQU  200    ; Hauteur écran
+SCREEN_SIZE EQU  8000   ; 160x200/4 car chaque banque contient la moitié des pixels
 MAP_W       EQU  32     ; Largeur map
 MAP_H       EQU  24     ; Hauteur map
 CENTER_Y    EQU  100    ; Centre vertical écran
@@ -105,7 +106,7 @@ START
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
-        JSR  DRAW_MINIMAP
+        ;JSR  DRAW_MINIMAP
         BRA  MAIN_LOOP
 
 ; Initialisation 
@@ -508,53 +509,107 @@ MM_PLAYER_RAMA
         RTS
 
 VIDEO_INIT
+        ; Désactive les interruptions
+        ORCC #$50       
+
         ; Map video RAM to $0000
         LDA  #%01100000  ; D7=0, D6=1 (écriture), D5=1 (RAM active), D4-D0=00000 (page 0)
         STA  $E7E6       ; Mappe la page 0 en $0000
 
-        ; Passage en mode bitmap
+        ; Désactive la palette matérielle
+        CLR  $E7DB      
+
+        ; Passage en mode 160x200x16
         LDA  #$7A       ; Mode bitmap 160x200 16 couleurs
         STA  $E7C3      ; Registre mode écran
         
-        ; Configuration GATE ARRAY
-        LDA  #$00       
-        STA  $E7DC      ; Sélection registre 0
-        LDA  #$71       ; Mode 160x200, 16 couleurs
+        ; Configuration Gate Array
+        CLR  $E7DC      ; Force registre 0
+        LDA  #$31       ; Mode 160x200, 16 couleurs, page 0 (00110001b)
+                       ; Bits 7-6 = 00 (page 0)
+                       ; Bits 5-0 = 110001 (mode 160x200)
         STA  $E7DD      ; Configuration vidéo
+                
+        ; Force bordure noire et désactive palette
+        CLR  $E7DB
+
+        ; Initialisation de la palette
+        CLR  $E7DB      ; Désactive la palette
+
+        ; Boucle d'initialisation des 16 couleurs
+        LDB  #$0F       ; Commence par la couleur 15
+VI_PAL_LOOP
+        STB  $E7DA      ; Sélectionne l'index de couleur (0-15)
+        LDA  PALETTE,B  ; Charge composante RG
+        STA  $E7DB      ; Écrit RG
+        LDA  PALETTE+16,B ; Charge composante B
+        STA  $E7DB      ; Écrit B
+        DECB            ; Couleur suivante
+        BPL  VI_PAL_LOOP ; Continue jusqu'à ce que B devienne négatif (après couleur 0)
+
+        ; Active la palette
+        LDA  #$39
+        STA  $E7DB
+
+        ; Nettoyage de l'écran - Version corrigée
+        ; RAMA ($0000-$1FFF) - Contient les pixels pairs
+        LDX  #VIDEO_MEM
+        LDD  #0         ; Couleur noire
+VI_CLEAR_RAMA
+        STD  ,X++       ; Écrit 2 octets
+        CMPX #VIDEO_MEM+SCREEN_SIZE
+        BLO  VI_CLEAR_RAMA
+
+        ; RAMB ($2000-$3FFF) - Contient les pixels impairs
+        LDX  #VIDEO_MEM+RAMB_BASE
+        LDD  #0         ; Couleur noire
+VI_CLEAR_RAMB
+        STD  ,X++       ; Écrit 2 octets
+        CMPX #VIDEO_MEM+RAMB_BASE+SCREEN_SIZE
+        BLO  VI_CLEAR_RAMB
         
-        ; Initialisation palette 
-        LDX  #$E7DA     ; Registre sélection couleur
-        LDY  #PALETTE   ; Pointeur sur la palette
-        LDB  #16        ; 16 couleurs à initialiser
-INIT_PAL_LOOP   
-        STB  ,X         ; Sélectionne l'index couleur
-        LDD  ,Y++       ; Charge la valeur RGB (2 octets)
-        STA  1,X        ; Stocke octet fort (Rouge-Vert)
-        STB  1,X        ; Stocke octet faible (Bleu)
-        DECB
-        BNE  INIT_PAL_LOOP
         RTS
 
 ; --------------- DONNÉES ---------------
 ; Palette 16 couleurs pour le raycasting
         ALIGN 256
 PALETTE
-        FDB  $000       ; 0  Noir (ciel)
-        FDB  $444       ; 1  Gris foncé
-        FDB  $666       ; 2  Gris
-        FDB  $888       ; 3  Gris moyen
-        FDB  $AAA       ; 4  Gris clair
-        FDB  $CCC       ; 5  Gris très clair
-        FDB  $F00       ; 6  Rouge pour murs
-        FDB  $0F0       ; 7  Vert pour murs
-        FDB  $00F       ; 8  Bleu pour murs
-        FDB  $FF0       ; 9  Jaune pour murs
-        FDB  $F0F       ; 10 Magenta pour murs
-        FDB  $0FF       ; 11 Cyan pour murs
-        FDB  $B44       ; 12 Rouge foncé
-        FDB  $4B4       ; 13 Vert foncé
-        FDB  $44B       ; 14 Bleu foncé
-        FDB  $FFF       ; 15 Blanc
+        ; Format: 16 octets RG suivis de 16 octets B
+        ; RG - Bits 7-4: Rouge, Bits 3-0: Vert
+        FCB  $00        ; 0: Noir
+        FCB  $44        ; 1: Rouge foncé pour murs lointains
+        FCB  $66        ; 2: Rouge moyen
+        FCB  $88        ; 3: Rouge vif pour murs proches
+        FCB  $AA        ; 4: Rouge très vif
+        FCB  $03        ; 5: Vert foncé pour sol lointain
+        FCB  $05        ; 6: Vert moyen pour sol
+        FCB  $07        ; 7: Vert clair pour sol proche
+        FCB  $22        ; 8: Gris très foncé pour plafond
+        FCB  $44        ; 9: Gris foncé pour plafond
+        FCB  $66        ; 10: Gris moyen pour plafond
+        FCB  $88        ; 11: Gris clair pour plafond
+        FCB  $FF        ; 12: Blanc
+        FCB  $F0        ; 13: Rouge clair (UI)
+        FCB  $0F        ; 14: Vert clair (UI)
+        FCB  $FF        ; 15: Blanc brillant (UI)
+
+        ; Composante Bleue
+        FCB  $0         ; 0: Noir
+        FCB  $0         ; 1: Pas de bleu (mur lointain)
+        FCB  $0         ; 2: Pas de bleu
+        FCB  $0         ; 3: Pas de bleu
+        FCB  $0         ; 4: Pas de bleu (mur proche)
+        FCB  $0         ; 5: Sol lointain
+        FCB  $0         ; 6: Sol
+        FCB  $0         ; 7: Sol proche
+        FCB  $2         ; 8: Plafond très loin
+        FCB  $4         ; 9: Plafond loin
+        FCB  $6         ; 10: Plafond moyen
+        FCB  $8         ; 11: Plafond proche
+        FCB  $F         ; 12: Blanc
+        FCB  $0         ; 13: UI rouge
+        FCB  $0         ; 14: UI vert
+        FCB  $F         ; 15: UI blanc
 
 ; Table des offsets écran
         ALIGN 256

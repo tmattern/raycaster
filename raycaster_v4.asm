@@ -196,6 +196,17 @@ DDA_LOOP
         CMPD <SIDEY
         BLO  STEPX
 
+DO_STEPX   
+        LDX  <MAP_PTR
+        LEAX STEPX,X
+        STX  <MAP_PTR
+        LDA  ,X
+        BNE  HITHORZ
+        LDD  <SIDEX
+        ADDD <DELTAX
+        STD  <SIDEX
+        BRA  DDA_LOOP
+
 DO_STEPY   
         LDX  <MAP_PTR
         LDA  <STEPY
@@ -212,17 +223,6 @@ SAVEY2
         LDD  <SIDEY
         ADDD <DELTAY
         STD  <SIDEY
-        BRA  DDA_LOOP
-
-DO_STEPX   
-        LDX  <MAP_PTR
-        LEAX STEPX,X
-        STX  <MAP_PTR
-        LDA  ,X
-        BNE  HITHORZ
-        LDD  <SIDEX
-        ADDD <DELTAX
-        STD  <SIDEX
         BRA  DDA_LOOP
 
 HITHORZ

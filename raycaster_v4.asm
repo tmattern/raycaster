@@ -53,15 +53,15 @@ START
         LDA  #$A0
         TFR  A,DP
         
-        ; Passe en mode 160x200x4
-        LDA  #$7A
-        STA  $E7C3
+        ; Init mode vidéo
+        JSR  VIDEO_INIT ; Nouveau - appel init vidéo
         
         JSR  INIT       ; Initialisation
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
         BRA  MAIN_LOOP
+
 
 ; Initialisation 
 INIT    
@@ -333,6 +333,49 @@ GEN_LOOP
         STX  WALL_ADDR
         STX  FLOOR_ADDR
         RTS
+
+VIDEO_INIT
+        ; Passage en mode bitmap
+        LDA  #$7A       ; Mode bitmap 160x200 16 couleurs
+        STA  $E7C3      ; Registre mode écran
+        
+        ; Configuration GATE ARRAY
+        LDA  #$00       
+        STA  $E7DC      ; Sélection registre 0
+        LDA  #$71       ; Mode 160x200, 16 couleurs
+        STA  $E7DD      ; Configuration vidéo
+        
+        ; Initialisation palette 
+        LDX  #$E7DA     ; Registre sélection couleur
+        LDY  #PALETTE   ; Pointeur sur la palette
+        LDB  #16        ; 16 couleurs à initialiser
+INIT_PAL_LOOP   
+        STB  ,X         ; Sélectionne l'index couleur
+        LDD  ,Y++       ; Charge la valeur RGB (2 octets)
+        STA  1,X        ; Stocke octet fort (Rouge-Vert)
+        STB  1,X        ; Stocke octet faible (Bleu)
+        DECB
+        BNE  INIT_PAL_LOOP
+        RTS
+
+; Palette 16 couleurs pour le raycasting
+PALETTE
+        FDB  $000       ; 0  Noir (ciel)
+        FDB  $444       ; 1  Gris foncé
+        FDB  $666       ; 2  Gris
+        FDB  $888       ; 3  Gris moyen
+        FDB  $AAA       ; 4  Gris clair
+        FDB  $CCC       ; 5  Gris très clair
+        FDB  $F00       ; 6  Rouge pour murs
+        FDB  $0F0       ; 7  Vert pour murs
+        FDB  $00F       ; 8  Bleu pour murs
+        FDB  $FF0       ; 9  Jaune pour murs
+        FDB  $F0F       ; 10 Magenta pour murs
+        FDB  $0FF       ; 11 Cyan pour murs
+        FDB  $B44       ; 12 Rouge foncé
+        FDB  $4B4       ; 13 Vert foncé
+        FDB  $44B       ; 14 Bleu foncé
+        FDB  $FFF       ; 15 Blanc
 
 ; Table des offsets écran
         ALIGN 256

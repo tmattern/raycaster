@@ -67,34 +67,11 @@ La cartouche enfichable de 16 Ko ou 32 Ko représente la mémoire morte exteme
 Commutation des logiciels 
 La figure 17 décrit le mécanisme général de fonctionnement. 
 De par les décodages d'adresses CSCRTN et CSMN en provenance du gate array mode page, le système assure la sélection de la zone cartouche 0000-3FFF et zone moniteur E000-FFFF moins quelques adresses prises par les registres des circuits périphériques. 
-96 
-rs 
 - 
-GATE ARRAY | 6646 
-vL M=
-ALAT3-A0 A4ATI-As IR R1312-A0 
-! Ly banque2_ banque# F | = o 
-Te Lotz | 
-16Ke 16Ko u I
-- e âl | o 
-e| 
-ë Qi 1 E- =I = banque 3 æ banque 
-Ko»L]BT ë ! 
-+Voc ; 
-Ve ——T:H 
-4| 4 4- 
-]0DD = 
-13 Ao ñ_o<}A 
-DBEM .. GE." DE i 
-=7‘—‘—-“*,0
-E— = < 74LS173 
-Figure 17. Gestion des ROMS dans le TO8 
 Sélection d’une page moniteur 
 Par construction, le bit P4 du 6846 étant relié au bit A13 du bus d'adresse de la mémoire de 16 Ko, ce bit permet de choisir la page de 8 Ko haute ou basse du boîtier. Ainsi: 
 P4 =0 ==> partie basse de la ROM P4=1==>partiehaudetlaeROM 
 Fiatchs A1cn 
-T 
-97 
 |— 
 La résistance reliée à la masse a pour effet, lors de l'initialisation, de rendre accessible automatiquement la partie basse de la ROM, P4 étant positionnée en entrée. 
 Sélection entre logiciels résidents et cartouche 
@@ -125,7 +102,7 @@ Al AO Logiciel latché laiché sélectt
 - -" .. 
 X X Cartouche 0 0 Banque0 0 1 Banquel 
 4000-DFFF E000-E7AF 
-} 1 0 x 0 x x Moni‘t;::e E800-FFFF partie 
+} 1 0 x 0 x x Monit;::e E800-FFFF partie 
 E000-E7AF } 1 0 x E800-FFFF 
 1 X 
 X Moniteur partie haute 
@@ -138,8 +115,8 @@ EXTENSION MEMOIRE
 Figure 18. Système de mémorisation RAMS dans le TO8 
 100 
 UNITE CENTRALE 
-[} 
-L___________________ï 
+
+
 Fonctionnement d'une 41256 
 Les 41256 sont des mémoires vives dynamiqurgs qui permettentde stocker sous forme de matrice de 27 = 512 lignes et de 27 = 512 colonnes, 512 x 512 = 256 Kbits. L'adressage d'une telle matrice, à structure symétrique, nécessite 2 x 9 bits d'adressage envoyés en deux temps sur les 9 fils du bus d'adresse correspondant. Aux 9 bits de poids faible correspond l'adressage ligne validé par Ie signal de ligne RASN; aux 9 bits de poids fort correspond l'adressage colonne validé par le signal de colonne CASN. Le diagramme suivant précise la forme multiplexée de l'adressage: 
 aû a9 al alo 
@@ -316,7 +293,7 @@ TO-T8 « adresses poids faible des compteurs.
 Pour: — E = 0 (phase non active du CPU) —C=0(adreRAMsscoleonsnes) 
 T9-T12 = adresses poids fort des compteurs; 
 TUB = soit T8, soit "0"; 
-BEO, BE]; Q 
+BEO, BE; Q 
 On notera que pour ls condition E = 0, le système permet deux accès RAM, validés par deux fronts descendants de CASN (cf. gestion des mémoires vives) avecRASN àl'état0.Ladifférenced'adressageestreprésentéeparl'étatdeQqui, compte tenu du timing (quadrature avec E), délivre pendant la condition présente Tétat O et l'état 1. 
 Q est en position de poids 13, ce qui représente une variation ou saut d'adresse de 21 = 8 Ko, les autres bits restant inchangés. Ainsi, quelle que soit l'adresse pointée, il existe systématiquement deux accès dans deux pages de 8 Ko conjointes. Ces deux pages sont concrétisées par la RAMA et la RAMB. 
 109 
@@ -519,10 +496,9 @@ L'adressage transformé permet un recouvrement par une des 16 pages d'adresses 
 ESPACE MONTEUR 
 rcL ES 
 Découpage togique {carte memoire G4kKo) 
-1 HPage 5 } 1 jA 
+
 CPU
-€-1) {- 
-<+ (=9, 
+
 AUTOMATE 
 Figure 20. Association des espaces logiquesiphysiques 
 Espace "écran” 
@@ -531,8 +507,7 @@ Cet espace, situé entre 4000 et SFFF, contient deux banques de 8 Ko (RAMA ou m
 Adressage CPU tranaforré N 
 Page n 
 16Ko 
-Découpage physique (2piune 41256 $12Ko) 
-j_| page 3| 
+Découpage physique  
 Le principe est le suivant 
 — Après un RESET, une mise sous tension ou si les bits D7, D6 du registre situéenE7DDsonttouslesdeuxà0,c'estlapagephysiqueOquiestaffichéeà T'écran, La façon dont les données sont interprétées par l'automate d'affichage dépend alors du mode choisi. 
 — En reprogrammant les bits D7 et D6 de E7DD, on peut afficher les pages physiques 1, 2 ou 3. Si on demande l'affichage de ia page 1, c'est le contenu de laRAM "système” qui apparaitra àl'écran. Ce contenu ayant peu d'intérêt, ce sont surtout les pages 2 et 3 qui seront utilisables. 
@@ -758,23 +733,11 @@ E7CI - registre de contrôle périphérique
     5. E7C5  -registre contrôle temporisation 
     6. E7C6  -registre temporisation 
 Le 6821 système 
-+5v 
-E7CX p> EZCX CLRG 
-, A2 
-A 
-D7 _J\
-“ Bus données 
-o —l/ E——¥ 
-#
-FIRQ (5809E)ÆB—‘ 
-Figure 23. Le 6821 "systè: me” 
 Commanda Moteur LEP KTEST clavier 
 Imprimante CENTRONICS 
 STROBE imprimante Incrustation 
-}(ému\aflan)
-coda barre 
-134 
-dans le TO8 
+
+
 Àl'exceptiondeCB1recevantparlabroche5duconnecteurcrayonoptique,une éventuelle demande en code barre, et des bits PB7, PB6, PBS, PB4, PB3 de commutationbanqueRAMsurleTO9,dontl'actionesticiparfaitementémulée par le gate array “mode page” (les broches sont “en l'air“), le composant joue le même rôle que dans l'unité centrale du TO9 (cf. Utilisation du 6821 dans le TO9, page 75). 
 Adresses des registres internes 
 E7C8 -registre de direction de données ou registre de données partie À E7C9 -registre de direction de données ou registre de données partie B E7CA -registre de contrôle partie À
@@ -794,10 +757,7 @@ PA4 PAS PA6 PA7
 — contact nord — contact sud 
 — contact ouest contactest 
 135 
-E— RESET——— AW——— < Aôceu RE 
 *Bus connées 
-te_] T13 4 
-N » 
 Figure 24. Le 6821 "musique et jeux” dans le TO8 
 -Pon B 
 Chaque ligne a un rôle complexe: 
@@ -805,19 +765,7 @@ PBO commun bufferisé pour la manette de jeux "0" ou bnt 0 configuré en sorti
     1. PB1  commun bufferisé pour la manette de jeux "1" ou bit 1 configuré en sortie pour le CNA. 
     2. PB2  bouton d'action B de la manette de jeux "0" ou XA de la souris ou bit 2 configuré en sortie pour le CNA. 
     3. PB3  bouton d'action B de la manette de jeux "1" ou bit 3 configuré en sortie par le CNA. 
-136 
-oo 
-Asionayh |actenBxa 
-Y 8741 =eils o | 
-Manattes 
-ot 
-| T12 
-ues XBY 
-Ÿ543210 ONA R2A 
-SON LEP 
-MUTE Mélangeur f6—5 5 
-sonwed — 
-SON Vers périel 
+
 6845 
 PB4 bit 4 configuré en sortie pour le CNA. 
 PBS bit 5 configuré en sortie pour le CNA. 
@@ -829,23 +777,10 @@ De par l'emploi des mêmes connections pour l'élaboration du son et pour luti
 Adresses des registres internes 
 E7CC - registre de direction de données ou registre de données partic À E7CD - registre de direction de données ou registre de données partie B E7CE - registre de contrôle partie À
 E7CF - registre de contrôle partie B. 
-137 
+
 Le 6804 
 LeMONOCHIP 6804apourtâchel'interfaçageetletraitementduclavieren relation avec le 6846 et le 6821 système, 
-RESET 
-e5| 
-48V, 
-MATAICE CLAVIER 
-Pc36004 — PAZ 6804 
-Acknoledge 6809 E — 
-Pagege1 qKTESL_____— ——DATRS|| DATAS Pssgsg_pÂKJ 
-Figure 25. Gestion du clavier dans le TO8 
-138 
-Français Export 
-SHIFT CONTROLE 
--%— 
-données 
-LED TAPS 
+
 Interfaçage du clavier 
 La figure 25 montre les interconnexions entre la matrice 10 x 8 du clavier et les ports A, B et C du 6804, Ce dernier est piloté par un quartz à la fréquence de 
 11 MHz. 
@@ -882,17 +817,6 @@ Quand le 6809 E souhaite émettre une requête, il met P5 à O et attend que 
 Le contrôleur de drive du TO8 est un nouveau boitier gate array THMFC1 développé par THOMSON Micro-informatique, pour répondre aux besoins des nouvelles machines. Il présente, notamment, une adaptabilité aux différents formats d'enregistrement des données (codage FM et MFM) et à la gestion des floppies 3"5, 5"25 ou d'un QDD (Quick Disk Drive). 
 1 peut commander deux unités de disquettes à la fois. D'un point de vue externe, le THMFCI s'apparente au WD 2793 ou WD 1770 utilisés sur le TO9. En interne, il se distingue par l'emploi d'un séparateur de données utilisant la technique de comptage à la place d'un circuit à verrouillage de phase (PLL). De même, il intègre un registre du choix de codage simple ou double densité (FM, MFM). 
 Branchements du THMFC1 
-RESET——# 
-A0——N Ar——} A2——Ji 
-=g EDD3ol %- 5s — Bs 
-LË rem...z —— 56 
-A0 données A 
-, Figure 26. Le gate array contrôleur de disques 
-MONOSTALE }-' Mo MOTEUR READY DISQUETTE 
-ey 
-COMMANDES DU DRIVE 
-J:JELm. RETOURS NPRIT DUDRIVE —RD 
-141 
 En liaison directe avec le bus du 6809 E (figure 26), le contrôleur est connecté au bus d'adresses par les trois lignes A2, Al, AO. Ces trois bits, en relation avec le décodage d'adresse DISN (actif pour E = 1) dans l'espace E7DO à E7D9, et en relation avec la commande R/WN (retardée en lecture), permetient la sélection des onze registres dont dispose le composant, 
 La figure 26 décrit les différentes commandes concemant les unités de disquettes. 
 On distingue: 
@@ -916,34 +840,6 @@ Indique que la disquette insérée dans la mécanique est protégée en é
 Flot de données lues sur la disquette. 
 Description et programmation des registres 
 « Registre CMDO en écriture à E7DO 
-bit 720
-bit 6a0
-bit 530 —> MFM 
-àl —> FM 
-bit 431 bit 3a0 
-bit 2al bit 1 bit 0 
-# Registre CMD1 
-bit 7 bit 6 bit 5 
-—> —> 
-—> —> 
-validation de ladétection des mots de synchro 
-inhibition de la synchronisation du séparateur de données pour le formatage.
-active lasortie WGN 
-code opération
-0 O reset
-0 1 &criture secteur 
-1 O — lecture adresse 1 1 - lecture secteur 
-en écriture à E7D1 
-—> —> 
-—> —> —> 
-—> 
-bitde compatibilité longueur du secteur 
-0 0
-0 1
-1 0
-1 1
-face 0 du disque
-facel
 commande de précompensation à 437,5 ns par pas de 62,5ns. 
 inhibition du systième, lorsque le signal READY est inactif (bit à 1). 
 128 mots/secteur 256 mots/secteur 512mots/secteur 
@@ -951,32 +847,8 @@ inhibition du systième, lorsque le signal READY est inactif (bit à 1).
 143 
 « Registre CMD2 en écriture à E7D2 
 Registre de commande, il a des fonctions différentes seion le drive utilisé: Floppy ou QDD. 
-144 
-bit 7 bit 6a0 
-0 1 
-bit 520 
-bit 
-bit bit 
-bit bit 
-non utilisé,
-face Odu floppy.
-commande active du moteur QDD.
-fonctions inverses.
-commande de direction vers l'extérieur (piste 0) du disque.
-fonction inverse
-non utilisé pour le QDD.
-commande de pas inactivée pour le floppy.
-active.
-non utilisé pour le QDD,
-non utilisé
-commande moteur inactive pour le floppy.
-active,
-non utilisé pour le QDD.
-commandes de sélection de drive (floppy
-et QDD) actives à l'état 1. 
+
 « Registre d'état STATO en lecture à E7DO, 
-7 àl a0 
-620 
 i m ade gI'heorloge caractère: demande d'opération 
 par lecture ou écriture des registres RDATA ou WDATA. 
 indication que l'opération se termine,
@@ -1019,32 +891,5 @@ selon le mode de codage utilisé.
 Spécification d'un secteur 
 Un secteur est composé d'un champ d'identification et d'un champ de données selon le modèle: 
 Nombre d'octets 
-12 3 
-1 Champ 1 
-d'identification 41
-1 
-Champ
-de données 
-Caractires 
-00
-Al horloge 0A 
-FE 
-00
-Al fhorloge 0A 
-1
-selon longueur de secteur 2 
-1
-variable selon le drive 
-Désignation 
-synchro bit
-synchro caractères adresse début identif, numéro de piste numéro de face numéro de secteur longueur secteur contrôle CRC
-espaces
-synchro bit
-synchro caractère adresse début donnée données
-contrôle CRC inhibition porte écrit. espaces 
-1 2 22 
-12 3 
-Les fonctions “intelligentes” du contrôleur consistent à lire une adresse, un secieur ou écrire un secteur. Elles sont programmées par les bits 1 et 0 du registre CMDO. Chaque fonction doit permettre l'acquittement d'une série d'opérations répondant aux spécifications décrites ci-avant. 
-146 
-FB 
 
+Les fonctions “intelligentes” du contrôleur consistent à lire une adresse, un secieur ou écrire un secteur. Elles sont programmées par les bits 1 et 0 du registre CMDO. Chaque fonction doit permettre l'acquittement d'une série d'opérations répondant aux spécifications décrites ci-avant. 

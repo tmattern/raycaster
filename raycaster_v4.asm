@@ -6,7 +6,8 @@
 ; =============================================
 
 ; Constantes
-VIDEO_MEM   EQU  $4000  ; Adresse mémoire vidéo
+VIDEO_MEM   EQU  $0000  ; Adresse mémoire vidéo (RAMA $0000-$1FFF)
+RAMB_BASE   EQU  $2000  ; Adresse RAMB ($2000-$3FFF)
 SCREEN_W    EQU  160    ; Largeur en mode 160x200
 SCREEN_H    EQU  200    ; Hauteur écran
 MAP_W       EQU  32     ; Largeur map
@@ -234,26 +235,29 @@ DIST
         STA  <HEIGHT
         RTS
 
-; Dessin colonne ultra optimisé
 DRAW_COL
         ; Init pointeur écran
         LDA  <CURR_COL
         ADDA #RENDER_X  ; Ajoute offset pour alignement à droite
-        LSRA
-        LDX  #VIDEO_MEM
-        LEAX A,X
-        STX  <COL_PTR
+        LSRA           ; Divise par 2 car 4 pixels par octet
+        LDX  #VIDEO_MEM 
+        LEAX A,X       
 
-        ; Prépare code auto-modifiant
+        ; Test si pixels dans RAMA ou RAMB
         LDA  <CURR_COL
-        ANDA #1
+        ANDA #1        ; Test bit 0 de la colonne
         BNE  PREP_ODD
 
-PREP_EVEN
+PREP_EVEN             ; Pixels 0,1 dans RAMA
+        STX  <COL_PTR  ; Sauvegarde pointeur RAMA
         LDD  #$F6A7    ; LDA high
         BRA  PREP_DONE
-PREP_ODD
-        LDD  #$B6A7    ; LDA low
+        
+PREP_ODD              ; Pixels 2,3 dans RAMB
+        LEAX RAMB_BASE-VIDEO_MEM,X  ; Ajuste pointeur pour RAMB
+        STX  <COL_PTR   ; Sauvegarde pointeur RAMB
+        LDD  #$B6A7     ; LDA low
+
 PREP_DONE
         STD  SKY_CODE
         STD  WALL_CODE
@@ -409,6 +413,10 @@ DRAW_PLAYER
         RTS
 
 VIDEO_INIT
+        ; Map video RAM to $0000
+        LDA  #%01100000  ; D7=0, D6=1 (écriture autorisée), D5=1 (RAM active), D4-D0=00000 (page 0)
+        STA  $E7E6       ; Mappe la page 0 en $0000
+
         ; Passage en mode bitmap
         LDA  #$7A       ; Mode bitmap 160x200 16 couleurs
         STA  $E7C3      ; Registre mode écran

@@ -20,7 +20,8 @@ CENTER_X    EQU  64     ; Centre horizontal de la fenêtre de rendu (128/2)
 MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 
-        ORG  $6000
+        ORG  $A000
+        JMP  START      ; Saut vers le code principal
 
 ; --------------- MAP 32x24 ---------------
         ALIGN 256
@@ -93,8 +94,8 @@ START
         ; Init système
         ORCC #$50       ; Désactive interruptions
         
-        ; Configure DP=$64
-        LDA  #$64
+        ; Configure DP=$A0
+        LDA  #$A0       ; Correct car les variables sont en $A0xx
         TFR  A,DP
         
         ; Init mode vidéo
@@ -383,6 +384,7 @@ GEN_LOOP
         RTS
 
 ; Routine d'affichage de la mini-map
+; Routine d'affichage de la mini-map
 DRAW_MINIMAP
         ; Pointeur vers début de la map
         LDX  #MAP
@@ -391,38 +393,68 @@ DRAW_MINIMAP
         
         ; Pour chaque ligne de la map
         LDB  #MAP_H     ; 24 lignes
-DMAP_LOOP
+MM_LOOP
         PSHS B          ; Sauve compteur de lignes
         
         ; Pour chaque colonne
         LDA  #MAP_W     ; 32 colonnes
-DMAP_COL
+MM_COL
         ; Lecture de la valeur de la map
         LDB  ,X+        
-        BEQ  DMAP_EMPTY ; Si case vide (0)
+        BEQ  MM_EMPTY   ; Si case vide (0)
         
         ; Case pleine : dessiner un point blanc
-        LDB  #$FF       ; Couleur blanche
-        BRA  DMAP_DRAW
+        LDB  #$F0       ; Couleur blanche en haute nibble
+        BRA  MM_DRAW
         
-DMAP_EMPTY
+MM_EMPTY
         LDB  #$00       ; Case vide en noir
         
-DMAP_DRAW
-        ; Dessine 2 pixels verticaux
-        STB  ,Y         ; Pixel ligne 1
-        STB  80,Y       ; Pixel ligne 2 (Y+80)
+MM_DRAW
+        ; Test si on doit écrire dans RAMA ou RAMB
+        TFR  Y,D
+        ANDB #1
+        BEQ  MM_WRITE_RAMA
         
+MM_WRITE_RAMB
+        ; Écrire dans RAMB
+        PSHS Y
+        TFR  Y,D
+        ADDD #RAMB_BASE-VIDEO_MEM
+        TFR  D,Y
+        LDA  ,Y        ; Préserve les pixels pairs
+        ANDA #$F0      ; Masque les pixels impairs
+        ORB  A         ; Combine avec la nouvelle valeur
+        STA  ,Y        ; Pixel ligne 1
+        LDA  80,Y      ; Même chose pour ligne 2
+        ANDA #$F0
+        ORB  A
+        STA  80,Y
+        PULS Y
+        BRA  MM_NEXT
+        
+MM_WRITE_RAMA
+        ; Écrire dans RAMA
+        LDA  ,Y        ; Préserve les pixels impairs
+        ANDA #$0F      ; Masque les pixels pairs
+        ORB  A         ; Combine avec la nouvelle valeur
+        STA  ,Y        ; Pixel ligne 1
+        LDA  80,Y      ; Même chose pour ligne 2
+        ANDA #$0F
+        ORB  A
+        STA  80,Y
+
+MM_NEXT        
         LEAY 1,Y        ; Pixel suivant
-        DECA            ; Décrémente compteur colonnes
-        BNE  DMAP_COL   ; Continue si pas fini la ligne
+        DECA           ; Décrémente compteur colonnes
+        BNE  MM_COL    ; Continue si pas fini la ligne
         
         ; Passe à la ligne suivante
         LEAY 80+48,Y    ; Saute une ligne (80) + reste de la ligne (48)
         
         PULS B          ; Récupère compteur de lignes
         DECB            ; Ligne suivante
-        BNE  DMAP_LOOP  ; Continue si pas fini toutes les lignes
+        BNE  MM_LOOP    ; Continue si pas fini toutes les lignes
         
         ; Affiche position joueur
         JSR  DRAW_PLAYER
@@ -441,10 +473,38 @@ DRAW_PLAYER
         MUL             ; D = A * B = Y * 160
         LEAX D,X        ; Ajoute offset vertical
         
-        ; Dessine le joueur en rouge
-        LDA  #$F0       ; Rouge vif
-        STA  ,X         ; Position joueur
-        STA  80,X       ; Pixel du dessous
+        ; Test si on doit écrire dans RAMA ou RAMB
+        TFR  X,D
+        ANDB #1
+        BEQ  MM_PLAYER_RAMA
+
+MM_PLAYER_RAMB
+        ; Position dans RAMB
+        TFR  X,D
+        ADDD #RAMB_BASE-VIDEO_MEM
+        TFR  D,X
+        ; Dessine le joueur en rouge (préserve les pixels pairs)
+        LDA  ,X
+        ANDA #$F0       ; Masque les pixels impairs
+        ORA  #$0F       ; Rouge en pixels impairs
+        STA  ,X
+        LDA  80,X
+        ANDA #$F0
+        ORA  #$0F
+        STA  80,X
+        RTS
+
+MM_PLAYER_RAMA
+        ; Position dans RAMA
+        ; Dessine le joueur en rouge (préserve les pixels impairs)
+        LDA  ,X
+        ANDA #$0F       ; Masque les pixels pairs
+        ORA  #$F0       ; Rouge en pixels pairs
+        STA  ,X
+        LDA  80,X
+        ANDA #$0F
+        ORA  #$F0
+        STA  80,X
         RTS
 
 VIDEO_INIT

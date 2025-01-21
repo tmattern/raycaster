@@ -33,6 +33,7 @@ DELTAY      RMB  2      ; Delta Y (8.8)
 SIDE        RMB  1      ; Côté touché (0=X, 1=Y)
 BLOCKS      RMB  1      ; Compteur blocs
 COL_PTR     RMB  2      ; Pointeur colonne courante
+TEMP        RMB  1      ; Variable temporaire
 
 ; Variables page zéro - Section rendu optimisé
         ORG  $0040
@@ -86,20 +87,20 @@ INIT_TABLES
         ; Init MAP_LINES
         LDX  #MAP_LINES
         LDY  #MAP
-@LINE   STY  ,X++
+LINE    STY  ,X++
         LEAY MAP_W,Y
         CMPX #MAP_LINES+48
-        BNE  @LINE
+        BNE  LINE
         RTS
 
 ; Init table offsets écran
 INIT_SCREEN_OFFS
         LDX  #SCREEN_OFFS
         LDD  #0
-@LOOP   STD  ,X++
+LOOP   STD  ,X++
         ADDD #80
         CMPX #SCREEN_OFFS+400
-        BNE  @LOOP
+        BNE  LOOP
         RTS
 
 ; Boucle raycasting principale
@@ -107,7 +108,7 @@ RAYCAST_FRAME
         CLRA
         STA  CURR_COL  ; Débute colonne 0
 
-@COL    ; Pour chaque colonne
+COL    ; Pour chaque colonne
         JSR  CALC_RAY  ; Calcule direction rayon
         JSR  RAYCAST   ; Lance rayon
         JSR  DRAW_COL  ; Dessine colonne
@@ -115,25 +116,27 @@ RAYCAST_FRAME
         INC  CURR_COL
         LDA  CURR_COL
         CMPA #SCREEN_W
-        BNE  @COL
+        BNE  COL
         RTS
 
-; Calcul direction rayon optimisé
 CALC_RAY
         LDA  CURR_COL
         SUBA #80       ; Centre écran
         ASRA           ; /2 pour FOV
         ADDA ANGLE     ; + angle joueur
-        TAY            ; Sauvegarde angle
+        STA  TEMP      ; Sauvegarde angle dans variable temporaire
         
         LDX  #SINTAB
         LDA  A,X       ; sin(angle)
         STA  DELTAY
         
         LDX  #COSTAB
-        LDA  Y,X       ; cos(angle)
+        LDA  TEMP      ; Récupère angle
+        LDA  A,X       ; cos(angle)
         STA  DELTAX
         RTS
+
+
 
 ; Raycasting DDA optimisé
 RAYCAST
@@ -148,67 +151,67 @@ RAYCAST
 
         ; Init deltas
         LDA  DELTAX
-        BPL  @POSX
+        BPL  POSX
         LDA  #-1
         STA  STEPX
         NEGB
-        BRA  @SAVEX
-@POSX   LDA  #1
+        BRA  SAVEX
+POSX   LDA  #1
         STA  STEPX
-@SAVEX  STB  SIDEX+1
+SAVEX  STB  SIDEX+1
         CLRA
         STA  SIDEX
 
         LDA  DELTAY
-        BPL  @POSY
+        BPL  POSY
         LDA  #-1
         STA  STEPY
         NEGB
-        BRA  @SAVEY
-@POSY   LDA  #1
+        BRA  SAVEY
+POSY   LDA  #1
         STA  STEPY
-@SAVEY  STB  SIDEY+1
+SAVEY  STB  SIDEY+1
         CLRA
         STA  SIDEY
 
 ; Boucle DDA ultra optimisée
-@LOOP   LDD  SIDEX
+LOOP   LDD  SIDEX
         CMPD SIDEY
-        BLO  @STEPX
+        BLO  STEPX
 
-@STEPY  LDX  MAP_PTR
+STEPY  LDX  MAP_PTR
         LDA  STEPY
-        BPL  @UP
-@DOWN   LEAX -MAP_W,X
-        BRA  @SAVEY
-@UP     LEAX MAP_W,X
-@SAVEY  STX  MAP_PTR
+        BPL  UP
+DOWN   LEAX -MAP_W,X
+        BRA  SAVEY
+UP     LEAX MAP_W,X
+SAVEY  STX  MAP_PTR
         LDA  ,X
-        BNE  @HITVERT
+        BNE  HITVERT
         LDD  SIDEY
         ADDD DELTAY
         STD  SIDEY
-        BRA  @LOOP
+        BRA  LOOP
 
-@STEPX  LDX  MAP_PTR
+STEPX  LDX  MAP_PTR
         LEAX STEPX,X
         STX  MAP_PTR
         LDA  ,X
-        BNE  @HITHORZ
+        BNE  HITHORZ
         LDD  SIDEX
         ADDD DELTAX
         STD  SIDEX
-        BRA  @LOOP
+        BRA  LOOP
 
-@HITHORZ
+HITHORZ
         LDD  SIDEX
         CLR  SIDE
-        BRA  @DIST
-@HITVERT
+        BRA  DIST
+HITVERT
         LDD  SIDEY
         LDA  #1
         STA  SIDE
-@DIST   STD  DIST
+DIST   STD  DIST
 
         ; Calcul hauteur optimisé
         LDA  #100
@@ -252,50 +255,50 @@ PREP_DONE
         LSRA
         LSRA
         STA  BLOCKS
-        BEQ  @WALL
+        BEQ  WALL
 
-@SKY    JSR  CODE_SKY
+SKY    JSR  CODE_SKY
         LDD  SKY_ADDR
         ADDD #640
         STD  SKY_ADDR
         DEC  BLOCKS
-        BNE  @SKY
+        BNE  SKY
 
         ; Dessine mur
-@WALL   LDA  HEIGHT
+WALL   LDA  HEIGHT
         LSRA
         LSRA
         LSRA
         STA  BLOCKS
-        BEQ  @REMAIN
+        BEQ  REMAIN
 
-@WALL8  JSR  CODE_WALL
+WALL8  JSR  CODE_WALL
         LDD  WALL_ADDR
         ADDD #640
         STD  WALL_ADDR
         DEC  BLOCKS
-        BNE  @WALL8
+        BNE  WALL8
 
         ; Pixels restants
-@REMAIN LDA  HEIGHT
+REMAIN LDA  HEIGHT
         ANDA #7
-        BEQ  @FLOOR
+        BEQ  FLOOR
         STA  BLOCKS
 
-@WALL1  JSR  WALL_CODE
+WALL1  JSR  WALL_CODE
         LDD  WALL_ADDR
         ADDD #80
         STD  WALL_ADDR
         DEC  BLOCKS
-        BNE  @WALL1
+        BNE  WALL1
 
         ; Dessine sol
-@FLOOR  JSR  CODE_FLOOR
+FLOOR  JSR  CODE_FLOOR
         LDD  FLOOR_ADDR
         ADDD #640
         STD  FLOOR_ADDR
         CMPD #SCREEN+16000
-        BLO  @FLOOR
+        BLO  FLOOR
 
         RTS
 
@@ -304,13 +307,13 @@ GEN_DRAW_CODE
         LDX  #CODE_SKY
         LDY  #OFFS_8
         LDB  #8
-@LOOP   LDD  SKY_CODE
+LOOP   LDD  SKY_CODE
         STD  ,X
         LDA  ,Y+
         STA  2,X
         LEAX 3,X
         DECB
-        BNE  @LOOP
+        BNE  LOOP
 
         LDX  COL_PTR
         STX  SKY_ADDR

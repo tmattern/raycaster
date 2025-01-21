@@ -1,7 +1,7 @@
 ; =============================================
 ; Raycasting ultra optimisé TO8/TO9 
 ; Version: 1.1
-; Date: 2025-01-21 08:27
+; Date: 2025-01-21 12:59
 ; Auteur: tmattern
 ; =============================================
 
@@ -45,12 +45,20 @@ BLOCKS      RMB  1      ; $A018 Compteur blocs
 COL_PTR     RMB  2      ; $A019-$A01A Pointeur colonne courante
 TEMP        RMB  1      ; $A01B Variable temporaire
 
-; Tables et buffers
-MAP_LINES   RMB  48     ; $A01C-$A04B 24 pointeurs lignes map
-OFFS_8      RMB  8      ; $A04C-$A053 Table offsets 8 pixels
-CODE_SKY    RMB  24     ; $A054-$A06B Code auto-modifiant ciel
-CODE_WALL   RMB  24     ; $A06C-$A083 Code auto-modifiant mur
-CODE_FLOOR  RMB  24     ; $A084-$A09B Code auto-modifiant sol
+; Variables pour le code auto-modifiant
+SKY_CODE    RMB  2      ; $A01C-$A01D Code pour le ciel
+WALL_CODE   RMB  2      ; $A01E-$A01F Code pour le mur 
+FLOOR_CODE  RMB  2      ; $A020-$A021 Code pour le sol
+SKY_ADDR    RMB  2      ; $A022-$A023 Adresse pour le ciel
+WALL_ADDR   RMB  2      ; $A024-$A025 Adresse pour le mur
+FLOOR_ADDR  RMB  2      ; $A026-$A027 Adresse pour le sol
+
+; Tables et buffers 
+MAP_LINES   RMB  48     ; $A028-$A057 24 pointeurs lignes map
+OFFS_8      RMB  8      ; $A058-$A05F Table offsets 8 pixels  
+CODE_SKY    RMB  24     ; $A060-$A077 Code auto-modifiant ciel
+CODE_WALL   RMB  24     ; $A078-$A08F Code auto-modifiant mur
+CODE_FLOOR  RMB  24     ; $A090-$A0A7 Code auto-modifiant sol
 
 ; Code principal
 START   
@@ -309,7 +317,7 @@ REMAIN
         STA  <BLOCKS
 
 WALL1   
-        JSR  WALL_CODE
+        JSR  CODE_WALL      ; Modifié : WALL_CODE -> CODE_WALL
         LDD  WALL_ADDR
         ADDD #80
         STD  WALL_ADDR

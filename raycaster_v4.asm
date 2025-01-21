@@ -1,7 +1,7 @@
 ; =============================================
 ; Raycasting ultra optimisé TO8/TO9 
 ; Version: 1.0
-; Date: 2025-01-20 18:33
+; Date: 2025-01-21 08:20
 ; Auteur: tmattern
 ; =============================================
 
@@ -87,20 +87,22 @@ INIT_TABLES
         ; Init MAP_LINES
         LDX  #MAP_LINES
         LDY  #MAP
-LINE    STY  ,X++
+INIT_LINE    
+        STY  ,X++
         LEAY MAP_W,Y
         CMPX #MAP_LINES+48
-        BNE  LINE
+        BNE  INIT_LINE
         RTS
 
 ; Init table offsets écran
 INIT_SCREEN_OFFS
         LDX  #SCREEN_OFFS
         LDD  #0
-LOOP   STD  ,X++
+OFFS_LOOP    
+        STD  ,X++
         ADDD #80
         CMPX #SCREEN_OFFS+400
-        BNE  LOOP
+        BNE  OFFS_LOOP
         RTS
 
 ; Boucle raycasting principale
@@ -137,7 +139,6 @@ CALC_RAY
         RTS
 
 
-
 ; Raycasting DDA optimisé
 RAYCAST
         ; Init pointeur map
@@ -156,9 +157,11 @@ RAYCAST
         STA  STEPX
         NEGB
         BRA  SAVEX
-POSX   LDA  #1
+POSX    
+        LDA  #1
         STA  STEPX
-SAVEX  STB  SIDEX+1
+SAVEX   
+        STB  SIDEX+1
         CLRA
         STA  SIDEX
 
@@ -168,32 +171,40 @@ SAVEX  STB  SIDEX+1
         STA  STEPY
         NEGB
         BRA  SAVEY
-POSY   LDA  #1
+POSY    
+        LDA  #1
         STA  STEPY
-SAVEY  STB  SIDEY+1
+SAVEY   
+        STB  SIDEY+1
         CLRA
         STA  SIDEY
 
 ; Boucle DDA ultra optimisée
-LOOP   LDD  SIDEX
+DDA_LOOP    
+        LDD  SIDEX
         CMPD SIDEY
         BLO  STEPX
 
-STEPY  LDX  MAP_PTR
+STEPY   
+        LDX  MAP_PTR
         LDA  STEPY
         BPL  UP
-DOWN   LEAX -MAP_W,X
-        BRA  SAVEY
-UP     LEAX MAP_W,X
-SAVEY  STX  MAP_PTR
+DOWN    
+        LEAX -MAP_W,X
+        BRA  SAVEY2
+UP      
+        LEAX MAP_W,X
+SAVEY2  
+        STX  MAP_PTR
         LDA  ,X
         BNE  HITVERT
         LDD  SIDEY
         ADDD DELTAY
         STD  SIDEY
-        BRA  LOOP
+        BRA  DDA_LOOP
 
-STEPX  LDX  MAP_PTR
+STEPX   
+        LDX  MAP_PTR
         LEAX STEPX,X
         STX  MAP_PTR
         LDA  ,X
@@ -201,7 +212,7 @@ STEPX  LDX  MAP_PTR
         LDD  SIDEX
         ADDD DELTAX
         STD  SIDEX
-        BRA  LOOP
+        BRA  DDA_LOOP
 
 HITHORZ
         LDD  SIDEX
@@ -211,7 +222,8 @@ HITVERT
         LDD  SIDEY
         LDA  #1
         STA  SIDE
-DIST   STD  DIST
+DIST    
+        STD  DIST
 
         ; Calcul hauteur optimisé
         LDA  #100
@@ -257,7 +269,8 @@ PREP_DONE
         STA  BLOCKS
         BEQ  WALL
 
-SKY    JSR  CODE_SKY
+SKY     
+        JSR  CODE_SKY
         LDD  SKY_ADDR
         ADDD #640
         STD  SKY_ADDR
@@ -265,14 +278,16 @@ SKY    JSR  CODE_SKY
         BNE  SKY
 
         ; Dessine mur
-WALL   LDA  HEIGHT
+WALL    
+        LDA  HEIGHT
         LSRA
         LSRA
         LSRA
         STA  BLOCKS
         BEQ  REMAIN
 
-WALL8  JSR  CODE_WALL
+WALL8   
+        JSR  CODE_WALL
         LDD  WALL_ADDR
         ADDD #640
         STD  WALL_ADDR
@@ -280,12 +295,14 @@ WALL8  JSR  CODE_WALL
         BNE  WALL8
 
         ; Pixels restants
-REMAIN LDA  HEIGHT
+REMAIN  
+        LDA  HEIGHT
         ANDA #7
         BEQ  FLOOR
         STA  BLOCKS
 
-WALL1  JSR  WALL_CODE
+WALL1   
+        JSR  WALL_CODE
         LDD  WALL_ADDR
         ADDD #80
         STD  WALL_ADDR
@@ -293,7 +310,8 @@ WALL1  JSR  WALL_CODE
         BNE  WALL1
 
         ; Dessine sol
-FLOOR  JSR  CODE_FLOOR
+FLOOR   
+        JSR  CODE_FLOOR
         LDD  FLOOR_ADDR
         ADDD #640
         STD  FLOOR_ADDR
@@ -307,13 +325,14 @@ GEN_DRAW_CODE
         LDX  #CODE_SKY
         LDY  #OFFS_8
         LDB  #8
-LOOP   LDD  SKY_CODE
+GEN_LOOP    
+        LDD  SKY_CODE
         STD  ,X
         LDA  ,Y+
         STA  2,X
         LEAX 3,X
         DECB
-        BNE  LOOP
+        BNE  GEN_LOOP
 
         LDX  COL_PTR
         STX  SKY_ADDR
@@ -391,4 +410,4 @@ MAP
         FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 23
         FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 24
 
-        END  START
+        END  START        

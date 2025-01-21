@@ -1,68 +1,63 @@
 ; =============================================
 ; Raycasting ultra optimisé TO8/TO9 
-; Version: 1.0
-; Date: 2025-01-21 08:20
+; Version: 1.1
+; Date: 2025-01-21 08:27
 ; Auteur: tmattern
 ; =============================================
 
 ; Constantes
-SCREEN      EQU  $A000  ; Adresse écran
+VIDEO_MEM   EQU  $4000  ; Adresse mémoire vidéo
 SCREEN_W    EQU  160    ; Largeur en mode 160x200
 SCREEN_H    EQU  200    ; Hauteur écran
 MAP_W       EQU  32     ; Largeur map
 MAP_H       EQU  24     ; Hauteur map
 CENTER_Y    EQU  100    ; Centre vertical écran
 
-; Variables page zéro - Section critique
-        ORG  $0000
-MAP_PTR     RMB  2      ; Pointeur map courant
-DIST        RMB  2      ; Distance au mur (8.8)
-HEIGHT      RMB  1      ; Hauteur colonne
-CURR_COL    RMB  1      ; Colonne courante
-MAPX        RMB  1      ; Position map X
-MAPY        RMB  1      ; Position map Y
-PLAYERX     RMB  2      ; Position joueur X (8.8)
-PLAYERY     RMB  2      ; Position joueur Y (8.8)
-ANGLE       RMB  1      ; Angle vue (0-255)
-STEPX       RMB  1      ; Direction X (-1/+1)
-STEPY       RMB  1      ; Direction Y (-1/+1)
-SIDEX       RMB  2      ; Distance côté X (8.8)
-SIDEY       RMB  2      ; Distance côté Y (8.8)
-DELTAX      RMB  2      ; Delta X (8.8)
-DELTAY      RMB  2      ; Delta Y (8.8)
-SIDE        RMB  1      ; Côté touché (0=X, 1=Y)
-BLOCKS      RMB  1      ; Compteur blocs
-COL_PTR     RMB  2      ; Pointeur colonne courante
-TEMP        RMB  1      ; Variable temporaire
+; Organisation mémoire à partir de $A000
+        ORG  $A000
 
-; Variables page zéro - Section rendu optimisé
-        ORG  $0040
-MAP_LINES   RMB  48     ; 24 pointeurs lignes map
+; Variables page directe (avec DP=$A0)
+MAP_PTR     RMB  2      ; $A000-$A001 Pointeur map courant
+DIST        RMB  2      ; $A002-$A003 Distance au mur (8.8)
+HEIGHT      RMB  1      ; $A004 Hauteur colonne
+CURR_COL    RMB  1      ; $A005 Colonne courante
+MAPX        RMB  1      ; $A006 Position map X
+MAPY        RMB  1      ; $A007 Position map Y
+PLAYERX     RMB  2      ; $A008-$A009 Position joueur X (8.8)
+PLAYERY     RMB  2      ; $A00A-$A00B Position joueur Y (8.8)
+ANGLE       RMB  1      ; $A00C Angle vue (0-255)
+STEPX       RMB  1      ; $A00D Direction X (-1/+1)
+STEPY       RMB  1      ; $A00E Direction Y (-1/+1)
+SIDEX       RMB  2      ; $A00F-$A010 Distance côté X (8.8)
+SIDEY       RMB  2      ; $A011-$A012 Distance côté Y (8.8)
+DELTAX      RMB  2      ; $A013-$A014 Delta X (8.8)
+DELTAY      RMB  2      ; $A015-$A016 Delta Y (8.8)
+SIDE        RMB  1      ; $A017 Côté touché (0=X, 1=Y)
+BLOCKS      RMB  1      ; $A018 Compteur blocs
+COL_PTR     RMB  2      ; $A019-$A01A Pointeur colonne courante
+TEMP        RMB  1      ; $A01B Variable temporaire
 
-        ORG  $00C0
-OFFS_8      RMB  8      ; Table offsets 8 pixels
-CODE_SKY    RMB  24     ; Code auto-modifiant ciel
-CODE_WALL   RMB  24     ; Code auto-modifiant mur
-CODE_FLOOR  RMB  24     ; Code auto-modifiant sol
+; Tables et buffers
+MAP_LINES   RMB  48     ; $A01C-$A04B 24 pointeurs lignes map
+OFFS_8      RMB  8      ; $A04C-$A053 Table offsets 8 pixels
+CODE_SKY    RMB  24     ; $A054-$A06B Code auto-modifiant ciel
+CODE_WALL   RMB  24     ; $A06C-$A083 Code auto-modifiant mur
+CODE_FLOOR  RMB  24     ; $A084-$A09B Code auto-modifiant sol
 
-
-        ORG  $4200      ; Offsets écran
-        ALIGN 256
-SCREEN_OFFS                 ; Table offsets écran
-        FDB  0,80,160,240,320,400,480,560
-        ; ... généré par INIT
-
-; Point d'entrée
-        ORG  $5000
+; Code principal
 START   
         ; Init système
-        ORCC #$50      ; Désactive interruptions
+        ORCC #$50       ; Désactive interruptions
+        
+        ; Configure DP=$A0
+        LDA  #$A0
+        TFR  A,DP
         
         ; Passe en mode 160x200x4
         LDA  #$7A
         STA  $E7C3
         
-        JSR  INIT      ; Initialisation
+        JSR  INIT       ; Initialisation
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
@@ -76,10 +71,10 @@ INIT
         
         ; Position départ joueur
         LDD  #$0800    ; X=8.0
-        STD  PLAYERX
-        STD  PLAYERY   ; Y=8.0
+        STD  <PLAYERX
+        STD  <PLAYERY  ; Y=8.0
         CLRA
-        STA  ANGLE     ; Angle=0
+        STA  <ANGLE    ; Angle=0
         RTS
 
 ; Init tables
@@ -108,86 +103,85 @@ OFFS_LOOP
 ; Boucle raycasting principale
 RAYCAST_FRAME
         CLRA
-        STA  CURR_COL  ; Débute colonne 0
+        STA  <CURR_COL  ; Débute colonne 0
 
 COL    ; Pour chaque colonne
-        JSR  CALC_RAY  ; Calcule direction rayon
-        JSR  RAYCAST   ; Lance rayon
-        JSR  DRAW_COL  ; Dessine colonne
+        JSR  CALC_RAY   ; Calcule direction rayon
+        JSR  RAYCAST    ; Lance rayon
+        JSR  DRAW_COL   ; Dessine colonne
         
-        INC  CURR_COL
-        LDA  CURR_COL
+        INC  <CURR_COL
+        LDA  <CURR_COL
         CMPA #SCREEN_W
         BNE  COL
         RTS
 
 CALC_RAY
-        LDA  CURR_COL
-        SUBA #80       ; Centre écran
-        ASRA           ; /2 pour FOV
-        ADDA ANGLE     ; + angle joueur
-        STA  TEMP      ; Sauvegarde angle dans variable temporaire
+        LDA  <CURR_COL
+        SUBA #80        ; Centre écran
+        ASRA            ; /2 pour FOV
+        ADDA <ANGLE     ; + angle joueur
+        STA  <TEMP      ; Sauvegarde angle dans variable temporaire
         
         LDX  #SINTAB
-        LDA  A,X       ; sin(angle)
-        STA  DELTAY
+        LDA  A,X        ; sin(angle)
+        STA  <DELTAY
         
         LDX  #COSTAB
-        LDA  TEMP      ; Récupère angle
-        LDA  A,X       ; cos(angle)
-        STA  DELTAX
+        LDA  <TEMP      ; Récupère angle
+        LDA  A,X        ; cos(angle)
+        STA  <DELTAX
         RTS
-
 
 ; Raycasting DDA optimisé
 RAYCAST
         ; Init pointeur map
-        LDA  MAPY
+        LDA  <MAPY
         LSLA
         LDX  #MAP_LINES
         LDX  A,X
-        LDB  MAPX
+        LDB  <MAPX
         ABX
-        STX  MAP_PTR
+        STX  <MAP_PTR
 
         ; Init deltas
-        LDA  DELTAX
+        LDA  <DELTAX
         BPL  POSX
         LDA  #-1
-        STA  STEPX
+        STA  <STEPX
         NEGB
         BRA  SAVEX
 POSX    
         LDA  #1
-        STA  STEPX
+        STA  <STEPX
 SAVEX   
-        STB  SIDEX+1
+        STB  <SIDEX+1
         CLRA
-        STA  SIDEX
+        STA  <SIDEX
 
-        LDA  DELTAY
+        LDA  <DELTAY
         BPL  POSY
         LDA  #-1
-        STA  STEPY
+        STA  <STEPY
         NEGB
         BRA  SAVEY
 POSY    
         LDA  #1
-        STA  STEPY
+        STA  <STEPY
 SAVEY   
-        STB  SIDEY+1
+        STB  <SIDEY+1
         CLRA
-        STA  SIDEY
+        STA  <SIDEY
 
 ; Boucle DDA ultra optimisée
 DDA_LOOP    
-        LDD  SIDEX
-        CMPD SIDEY
+        LDD  <SIDEX
+        CMPD <SIDEY
         BLO  STEPX
 
 STEPY   
-        LDX  MAP_PTR
-        LDA  STEPY
+        LDX  <MAP_PTR
+        LDA  <STEPY
         BPL  UP
 DOWN    
         LEAX -MAP_W,X
@@ -195,54 +189,54 @@ DOWN
 UP      
         LEAX MAP_W,X
 SAVEY2  
-        STX  MAP_PTR
+        STX  <MAP_PTR
         LDA  ,X
         BNE  HITVERT
-        LDD  SIDEY
-        ADDD DELTAY
-        STD  SIDEY
+        LDD  <SIDEY
+        ADDD <DELTAY
+        STD  <SIDEY
         BRA  DDA_LOOP
 
 STEPX   
-        LDX  MAP_PTR
+        LDX  <MAP_PTR
         LEAX STEPX,X
-        STX  MAP_PTR
+        STX  <MAP_PTR
         LDA  ,X
         BNE  HITHORZ
-        LDD  SIDEX
-        ADDD DELTAX
-        STD  SIDEX
+        LDD  <SIDEX
+        ADDD <DELTAX
+        STD  <SIDEX
         BRA  DDA_LOOP
 
 HITHORZ
-        LDD  SIDEX
-        CLR  SIDE
+        LDD  <SIDEX
+        CLR  <SIDE
         BRA  DIST
 HITVERT
-        LDD  SIDEY
+        LDD  <SIDEY
         LDA  #1
-        STA  SIDE
+        STA  <SIDE
 DIST    
-        STD  DIST
+        STD  <DIST
 
         ; Calcul hauteur optimisé
         LDA  #100
-        LDB  DIST+1
+        LDB  <DIST+1
         MUL
-        STA  HEIGHT
+        STA  <HEIGHT
         RTS
 
 ; Dessin colonne ultra optimisé
 DRAW_COL
         ; Init pointeur écran
-        LDA  CURR_COL
+        LDA  <CURR_COL
         LSRA
-        LDX  #SCREEN
+        LDX  #VIDEO_MEM
         LEAX A,X
-        STX  COL_PTR
+        STX  <COL_PTR
 
         ; Prépare code auto-modifiant
-        LDA  CURR_COL
+        LDA  <CURR_COL
         ANDA #1
         BNE  PREP_ODD
 
@@ -260,13 +254,13 @@ PREP_DONE
         JSR  GEN_DRAW_CODE
 
         ; Dessine ciel
-        LDA  HEIGHT
+        LDA  <HEIGHT
         NEGA
         ADDA #CENTER_Y
         LSRA
         LSRA
         LSRA
-        STA  BLOCKS
+        STA  <BLOCKS
         BEQ  WALL
 
 SKY     
@@ -274,16 +268,16 @@ SKY
         LDD  SKY_ADDR
         ADDD #640
         STD  SKY_ADDR
-        DEC  BLOCKS
+        DEC  <BLOCKS
         BNE  SKY
 
         ; Dessine mur
 WALL    
-        LDA  HEIGHT
+        LDA  <HEIGHT
         LSRA
         LSRA
         LSRA
-        STA  BLOCKS
+        STA  <BLOCKS
         BEQ  REMAIN
 
 WALL8   
@@ -291,22 +285,22 @@ WALL8
         LDD  WALL_ADDR
         ADDD #640
         STD  WALL_ADDR
-        DEC  BLOCKS
+        DEC  <BLOCKS
         BNE  WALL8
 
         ; Pixels restants
 REMAIN  
-        LDA  HEIGHT
+        LDA  <HEIGHT
         ANDA #7
         BEQ  FLOOR
-        STA  BLOCKS
+        STA  <BLOCKS
 
 WALL1   
         JSR  WALL_CODE
         LDD  WALL_ADDR
         ADDD #80
         STD  WALL_ADDR
-        DEC  BLOCKS
+        DEC  <BLOCKS
         BNE  WALL1
 
         ; Dessine sol
@@ -315,7 +309,7 @@ FLOOR
         LDD  FLOOR_ADDR
         ADDD #640
         STD  FLOOR_ADDR
-        CMPD #SCREEN+16000
+        CMPD #VIDEO_MEM+16000
         BLO  FLOOR
 
         RTS
@@ -334,14 +328,20 @@ GEN_LOOP
         DECB
         BNE  GEN_LOOP
 
-        LDX  COL_PTR
+        LDX  <COL_PTR
         STX  SKY_ADDR
         STX  WALL_ADDR
         STX  FLOOR_ADDR
         RTS
 
+; Table des offsets écran
+        ALIGN 256
+SCREEN_OFFS
+        FDB  0,80,160,240,320,400,480,560,640,720,800
+        ; ... généré dynamiquement par INIT_SCREEN_OFFS
+
 ; --------------- TABLES ---------------
-        ORG  $F000
+        ORG  $AE00     ; Tables à la fin du programme
 ; Table sinus - 256 valeurs sur [0,2π]
 SINTAB
         FCB  0,3,6,9,12,15,18,21,24,27,30,33,36,39,42,45

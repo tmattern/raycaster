@@ -273,6 +273,8 @@ CALC_DIST
 
 ; Le code principal
 ; Dessine une colonne de pixels
+; Le code principal
+; Dessine une colonne de pixels
 DRAW_COL
         ; 1. Calcule l'adresse de base de la colonne (X = CURR_COL + 32)
         LDA  <CURR_COL     ; 0-127
@@ -288,27 +290,34 @@ DRAW_COL
         ; Détermine RAMA/RAMB selon bit 1 de la position
         PULS A            ; Récupère X
         ANDA #3           ; Position 0-3
+        PSHS A            ; Sauvegarde la position pour plus tard
         CMPA #2
         BLO  DC_RAMA      ; Si < 2, reste en RAMA
-
 
 DC_RAMB
         LEAX RAMB_BASE,X   ; Passe en RAMB
         LDD  #VIDEO_MEM+RAMB_BASE+8000  ; Limite pour RAMB
-        BRA  DC_SAVE_LIMIT
+        STD  <DC_END_ADR   
+        PULS A            ; Récupère la position
+        SUBA #2           ; Ramène à 0-1 pour position dans l'octet
+        BRA  DC_SET_POS
+
 DC_RAMA
         LDD  #VIDEO_MEM+8000            ; Limite pour RAMA
-DC_SAVE_LIMIT
-        STD  <DC_END_ADR   ; Sauvegarde la limite
-        ANDA #1            ; Continue le code normal...
+        STD  <DC_END_ADR
+        PULS A            ; Récupère la position
+
+DC_SET_POS
+        ANDA #1            ; Test position dans l'octet
+        BNE  DC_POS_LOW    ; Si 1 -> poids faible
         
-DC_POS_0                   ; Position 0 (poids fort)
+DC_POS_HIGH               ; Position 0 ou 2 (poids fort)
         LDA  #$0F          ; Masque pour préserver poids faible
         STA  <DC_PIX_MSK   
-        LDA  #11x16        ; Couleur du ciel
+        LDA  #11*16        ; Couleur du ciel en position haute
         BRA  DC_START_DRAW
         
-DC_POS_1                   ; Position 1 (poids faible)
+DC_POS_LOW               ; Position 1 ou 3 (poids faible)
         LDA  #$F0          ; Masque pour préserver poids fort
         STA  <DC_PIX_MSK
         LDA  #11           ; Couleur du ciel en position basse
@@ -346,8 +355,8 @@ DC_WALL
         
         ; Prépare couleur mur (3)
         TST  <DC_PIX_MSK    ; Test si on est en poids fort
-        BMI  DC_WALL_LOW    ; Si bit 7=0, position basse
-        LDB  #3*16
+        BMI  DC_WALL_LOW    ; Si masque = $F0, position basse
+        LDB  #3*16          ; Couleur en position haute
         BRA  DC_WALL_SET
 DC_WALL_LOW
         LDB  #3            ; Couleur en position basse
@@ -365,20 +374,14 @@ DC_WALL_LOOP
         BNE  DC_WALL_LOOP
 
         ; Sol (jusqu'en bas de l'écran)
+DC_FLOOR
         ; Prépare couleur sol (6)
         TST  <DC_PIX_MSK    ; Test si on est en poids fort
-        BMI  DC_FLOOR_LOW   ; Si bit 7=0, position basse
-        LDB  #6 * 16
-        BRA  DC_FLOOR_SET
-; Sol (jusqu'en bas de l'écran)
-DC_FLOOR                   ; <- Ajout de l'étiquette manquante
-        ; Prépare couleur sol (6)
-        TST  <DC_PIX_MSK    ; Test si on est en poids fort
-        BMI  DC_FLOOR_LOW   ; Si bit 7=0, position basse
-        LDB  #6*16
+        BMI  DC_FLOOR_LOW   ; Si masque = $F0, position basse
+        LDB  #6*16         ; Couleur en position haute
         BRA  DC_FLOOR_SET
 DC_FLOOR_LOW
-        LDB  #6            ; Couleur en position basse
+        LDB  #6           ; Couleur en position basse
 DC_FLOOR_SET
         STB  <DC_PIX_VAL
 

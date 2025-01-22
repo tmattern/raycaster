@@ -261,16 +261,50 @@ HITVERT
         LDD  <SIDEY
         LDA  #1
         STA  <SIDE
+
 CALC_DIST    
-        STD  <DIST
+        STD  <DIST         ; Sauvegarde la distance
 
-        ; Calcul hauteur optimisé
-        LDA  #100
-        LDB  <DIST+1
-        MUL
+        ; Si distance = 0, force hauteur max
+        BNE  DIST_OK
+        LDA  #200
+        BRA  SAVE_HEIGHT
+
+DIST_OK
+        ; Division de (100 * 256) par DIST
+        ; On fait une division par soustraction successive
+        LDD  #25600        ; 100 * 256
+        LDX  #0           ; Compteur (sera la hauteur)
+        
+DIV_LOOP
+        CMPD <DIST        ; Compare avec distance
+        BLO  DIV_END      ; Si plus petit, fin
+        SUBD <DIST        ; Soustrait la distance
+        LEAX 1,X          ; Incrémente compteur
+        CPX  #200         ; Check si on dépasse hauteur max
+        BHS  FORCE_MAX    ; Si oui, force hauteur max
+        BRA  DIV_LOOP     ; Continue division
+        
+FORCE_MAX
+        LDA  #200
+        BRA  SAVE_HEIGHT
+        
+DIV_END
+        TFR  X,D          ; Met le résultat dans D
+        STA  <HEIGHT      ; Sauvegarde l'octet haut de X (comme hauteur)
+
+SAVE_HEIGHT
         STA  <HEIGHT
+        
+        ; DEBUG - Si toujours 0, affiche pixel rouge
+        TST  <HEIGHT
+        BNE  SKIP_DEBUG
+        LDX  #VIDEO_MEM
+        LDA  #$40        ; Rouge en position haute
+        STA  ,X
+SKIP_DEBUG
         RTS
-
+        
 ; Le code principal
 ; Dessine une colonne de pixels
 ; Le code principal

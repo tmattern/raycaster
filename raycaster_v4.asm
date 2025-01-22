@@ -103,10 +103,10 @@ START
         JSR  VIDEO_INIT
         
         JSR  INIT       ; Initialisation
+        JSR  DRAW_MINIMAP
         
 MAIN_LOOP
-        ; JSR  RAYCAST_FRAME
-        JSR  DRAW_MINIMAP
+        JSR  RAYCAST_FRAME
         BRA  MAIN_LOOP
 
 ; Initialisation 
@@ -116,9 +116,10 @@ INIT
         JSR  INIT_SCREEN_OFFS
         
         ; Position départ joueur
-        LDD  #$0800    ; X=8.0
+        LDD  #$1000    ; X=16.0
         STD  <PLAYERX
-        STD  <PLAYERY  ; Y=8.0
+        LDD  #$0700    ; Y=16.0
+        STD  <PLAYERY
         CLRA
         STA  <ANGLE    ; Angle=0
         RTS
@@ -404,17 +405,17 @@ MM_COL
         ; Prépare l'octet pour RAMA (pixels 0,1)
         LDA  ,X+        ; Premier pixel
         BEQ  MM_PIX0_EMPTY
-        LDA  #$F0       ; Premier pixel blanc (4 bits de poids fort)
+        LDA  #$C0       ; Premier pixel blanc (4 bits de poids fort)
         BRA  MM_PIX0_SET
 MM_PIX0_EMPTY
         LDA  #$00       ; Premier pixel noir
 MM_PIX0_SET
         LDB  ,X+        ; Second pixel
         BEQ  MM_PIX1_EMPTY
-        ORB  #$0F       ; Second pixel blanc (4 bits de poids faible)
+        LDB  #$0C       ; Second pixel blanc (4 bits de poids faible)
         BRA  MM_PIX1_SET
 MM_PIX1_EMPTY
-        ORB  #$00       ; Second pixel noir
+        LDB  #$00       ; Second pixel noir
 MM_PIX1_SET
         PSHS B         ; Sauve second pixel
         ORA  ,S+       ; Combine les deux pixels dans A
@@ -424,17 +425,17 @@ MM_PIX1_SET
         ; Prépare l'octet pour RAMB (pixels 2,3)
         LDA  ,X+        ; Troisième pixel
         BEQ  MM_PIX2_EMPTY
-        LDA  #$F0       ; Troisième pixel blanc
+        LDA  #$C0       ; Troisième pixel blanc
         BRA  MM_PIX2_SET
 MM_PIX2_EMPTY
         LDA  #$00       ; Troisième pixel noir
 MM_PIX2_SET
         LDB  ,X+        ; Quatrième pixel
         BEQ  MM_PIX3_EMPTY
-        ORB  #$0F       ; Quatrième pixel blanc
+        LDB  #$0C       ; Quatrième pixel blanc
         BRA  MM_PIX3_SET
 MM_PIX3_EMPTY
-        ORB  #$00       ; Quatrième pixel noir
+        LDB  #$00       ; Quatrième pixel noir
 MM_PIX3_SET
         PSHS B         ; Sauve quatrième pixel
         ORA  ,S+       ; Combine les pixels dans A
@@ -467,7 +468,6 @@ MM_PIX3_SET
         RTS
     
 ; Routine pour afficher la position du joueur sur la mini-map
-; Routine pour afficher la position du joueur sur la mini-map
 DRAW_PLAYER
         ; Calcul de la position écran du joueur
         ; U contiendra l'adresse de base
@@ -475,7 +475,7 @@ DRAW_PLAYER
         
         ; Calcul offset Y (Y * 40 car 40 octets par ligne)
         LDA  <PLAYERY    ; En big-endian, la partie entière est dans le premier octet
-        LDB  #40         ; 40 octets par ligne
+        LDB  #80         ; 40 octets par ligne x 2
         MUL
         LEAU D,U        ; Ajoute à l'adresse de base
         
@@ -496,6 +496,28 @@ DRAW_PLAYER
         CMPA #1          ; Test si pixel 0 ou 1
         BNE  MM_PLAYER_RAMA_HIGH
         
+MM_PLAYER_RAMA_LOW     ; Pixel 1 (poids faible)
+        LDA  ,U
+        ANDA #$F0       ; Préserve poids fort
+        ORA  #2         ; Indice 2 (rouge moyen) en poids faible
+        STA  ,U
+        LDA  40,U       ; 40 octets par ligne
+        ANDA #$F0
+        ORA  #2
+        STA  40,U
+        RTS
+
+MM_PLAYER_RAMA_HIGH    ; Pixel 0 (poids fort)
+        LDA  ,U
+        ANDA #$0F       ; Préserve poids faible
+        ORA  #$20       ; Indice 2 (rouge moyen) en poids fort
+        STA  ,U
+        LDA  40,U       ; 40 octets par ligne
+        ANDA #$0F
+        ORA  #$20
+        STA  40,U
+        RTS
+
 MM_PLAYER_RAMB        ; RAMB (pixels 2 et 3)
         PSHS U         ; Sauve pointeur RAMA
         TFR  U,D
@@ -505,49 +527,27 @@ MM_PLAYER_RAMB        ; RAMB (pixels 2 et 3)
         CMPA #3        ; Test si pixel 2 ou 3
         BEQ  MM_PLAYER_RAMB_LOW
 
-MM_PLAYER_RAMA_LOW     ; Pixel 1 (poids faible)
-        LDA  ,U
-        ANDA #$F0       ; Préserve poids fort
-        ORA  #4         ; Couleur 4 (rouge très vif) en poids faible
-        STA  ,U
-        LDA  40,U       ; 40 octets par ligne
-        ANDA #$F0
-        ORA  #4
-        STA  40,U
-        RTS
-
-MM_PLAYER_RAMA_HIGH    ; Pixel 0 (poids fort)
-        LDA  ,U
-        ANDA #$0F       ; Préserve poids faible
-        ORA  #$40       ; Couleur 4 (rouge très vif) en poids fort
-        STA  ,U
-        LDA  40,U       ; 40 octets par ligne
-        ANDA #$0F
-        ORA  #$40
-        STA  40,U
-        RTS
-
 MM_PLAYER_RAMB_HIGH   ; Pixel 2 (poids fort)
         LDA  ,U
         ANDA #$0F      ; Préserve poids faible
-        ORA  #$40      ; Couleur 4 (rouge très vif) en poids fort
+        ORA  #$20      ; Indice 2 (rouge moyen) en poids fort
         STA  ,U
         LDA  40,U      ; 40 octets par ligne
         ANDA #$0F
-        ORA  #$40
+        ORA  #$20
         STA  40,U
         PULS U,PC
 
 MM_PLAYER_RAMB_LOW    ; Pixel 3 (poids faible)
         LDA  ,U
         ANDA #$F0      ; Préserve poids fort
-        ORA  #4        ; Couleur 4 (rouge très vif) en poids faible
+        ORA  #2        ; Indice 2 (rouge moyen) en poids faible
         STA  ,U
         LDA  40,U      ; 40 octets par ligne
         ANDA #$F0
-        ORA  #4
+        ORA  #2
         STA  40,U
-        PULS U,PC        
+        PULS U,PC
         
 VIDEO_INIT
         ; Désactive les interruptions

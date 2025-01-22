@@ -22,7 +22,7 @@ MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 
         ORG  $A000
-        JMP  START      ; Saut vers le code principal
+        LBRA  START     ; Saut vers le code principal
 
 ; --------------- MAP 32x24 ---------------
         ALIGN 256
@@ -106,7 +106,7 @@ START
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
-        ;JSR  DRAW_MINIMAP
+        JSR  DRAW_MINIMAP
         BRA  MAIN_LOOP
 
 ; Initialisation 

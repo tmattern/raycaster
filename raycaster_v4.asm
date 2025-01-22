@@ -54,7 +54,7 @@ MAP
 
 ; --------------- VARIABLES ---------------
         ALIGN 256
-; Variables page directe (avec DP=$64)
+; Variables page directe (avec DP=$A4)
 MAP_PTR     RMB  2      ; Pointeur map courant
 DIST        RMB  2      ; Distance au mur (8.8)
 HEIGHT      RMB  1      ; Hauteur colonne
@@ -96,7 +96,7 @@ START
         ORCC #$50       ; Désactive interruptions
         
         ; Configure DP=$A0
-        LDA  #$A0       ; Correct car les variables sont en $A0xx
+        LDA  #$A4       ; Correct car les variables sont en $A0xx
         TFR  A,DP
         
         ; Init mode vidéo

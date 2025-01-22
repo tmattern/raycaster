@@ -276,25 +276,50 @@ CALC_DIST
 DRAW_COL
         ; Init pointeur écran
         LDA  <CURR_COL
-        ADDA #RENDER_X  ; Ajoute offset pour alignement à droite
-        LSRA           ; Divise par 2 car 4 pixels par octet
+        ADDA #RENDER_X  ; Ajoute offset pour alignement à droite (32)
+        LSRA           ; Divise par 4 car 4 pixels par octet
+        LSRA           ; (2 LSRA au lieu d'un)
         LDX  #VIDEO_MEM 
-        LEAX A,X       
+        LEAX A,X       ; X pointe maintenant sur le bon octet
 
-        ; Test si pixels dans RAMA ou RAMB
+        ; Test position du pixel dans l'octet (0-3)
         LDA  <CURR_COL
-        ANDA #1        ; Test bit 0 de la colonne
-        BNE  PREP_ODD
+        ADDA #RENDER_X  ; Réajoute offset
+        ANDA #3        ; Modulo 4 pour savoir quel pixel dans l'octet
+        CMPA #2        ; Compare avec 2 pour savoir si RAMA ou RAMB
+        BHS  PREP_RAMB ; Si >= 2 alors RAMB
 
-PREP_EVEN             ; Pixels 0,1 dans RAMA
-        STX  <COL_PTR  ; Sauvegarde pointeur RAMA
-        LDD  #$F6A7    ; LDA high
+        ; RAMA (pixels 0 et 1)
+        CMPA #1        ; Test si pixel 0 ou 1
+        BNE  PREP_RAMA_HIGH
+
+PREP_RAMA_LOW        ; Pixel 1 (poids faible)
+        STX  <COL_PTR
+        LDD  #$F6A7    ; LDA pour poids faible
         BRA  PREP_DONE
         
-PREP_ODD              ; Pixels 2,3 dans RAMB
-        LEAX RAMB_BASE-VIDEO_MEM,X  ; Ajuste pointeur pour RAMB
-        STX  <COL_PTR   ; Sauvegarde pointeur RAMB
-        LDD  #$B6A7     ; LDA low
+PREP_RAMA_HIGH      ; Pixel 0 (poids fort)
+        STX  <COL_PTR
+        LDD  #$B6A7    ; LDA pour poids fort
+        BRA  PREP_DONE
+
+PREP_RAMB          ; RAMB (pixels 2 et 3)
+        PSHS X
+        TFR  X,D
+        ADDD #RAMB_BASE-VIDEO_MEM
+        TFR  D,X
+        STX  <COL_PTR
+        PULS X
+        
+        CMPA #3        ; Test si pixel 2 ou 3
+        BEQ  PREP_RAMB_LOW
+
+PREP_RAMB_HIGH     ; Pixel 2 (poids fort)
+        LDD  #$B6A7    ; LDA pour poids fort
+        BRA  PREP_DONE
+
+PREP_RAMB_LOW      ; Pixel 3 (poids faible)
+        LDD  #$F6A7    ; LDA pour poids faible
 
 PREP_DONE
         STD  SKY_CODE

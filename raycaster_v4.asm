@@ -388,7 +388,7 @@ GEN_LOOP
 DRAW_MINIMAP
         ; Pointeur vers début de la map
         LDX  #MAP
-        ; Pointeur écran de base
+        ; Pointeur écran de base RAMA
         LDU  #VIDEO_MEM
         
         ; Pour chaque ligne de la map
@@ -396,56 +396,76 @@ DRAW_MINIMAP
 MM_LOOP
         PSHS B,U        ; Sauve compteur de lignes et pointeur base
         
-        ; Pour chaque groupe de 4 pixels (2 cases de la map)
-        LDB  #16        ; 32 pixels = 16 groupes de 2 pixels
+        ; Pour chaque groupe de 4 pixels (2 octets: 1 RAMA + 1 RAMB)
+        LDB  #8         ; 32 pixels = 8 groupes de 4 pixels
 MM_COL
         PSHS B          ; Sauve compteur
         
-        ; Premier pixel de la map (RAMA)
-        LDA  ,X+        ; Charge valeur map
+        ; Prépare l'octet pour RAMA (pixels 0,1)
+        LDA  ,X+        ; Premier pixel
+        BEQ  MM_PIX0_EMPTY
+        LDA  #$F0       ; Premier pixel blanc (4 bits de poids fort)
+        BRA  MM_PIX0_SET
+MM_PIX0_EMPTY
+        LDA  #$00       ; Premier pixel noir
+MM_PIX0_SET
+        LDB  ,X+        ; Second pixel
         BEQ  MM_PIX1_EMPTY
-        LDA  #$F0       ; Pixel blanc
+        ORB  #$0F       ; Second pixel blanc (4 bits de poids faible)
         BRA  MM_PIX1_SET
 MM_PIX1_EMPTY
-        LDA  #$00       ; Pixel noir
+        ORB  #$00       ; Second pixel noir
 MM_PIX1_SET
-        STA  ,U         ; Écrit dans RAMA
-        STA  80,U       ; Double ligne
+        PSHS B         ; Sauve second pixel
+        ORA  ,S+       ; Combine les deux pixels dans A
+        STA  ,U        ; Écrit dans RAMA
+        STA  40,U      ; Double ligne en RAMA
         
-        ; Second pixel de la map (RAMB)
-        LDB  ,X+        ; Charge valeur map
+        ; Prépare l'octet pour RAMB (pixels 2,3)
+        LDA  ,X+        ; Troisième pixel
         BEQ  MM_PIX2_EMPTY
-        LDB  #$F0       ; Pixel blanc
+        LDA  #$F0       ; Troisième pixel blanc
         BRA  MM_PIX2_SET
 MM_PIX2_EMPTY
-        LDB  #$00       ; Pixel noir
+        LDA  #$00       ; Troisième pixel noir
 MM_PIX2_SET
-        ; Calcul adresse RAMB
-        PSHS U,A        ; Sauve U et A
-        TFR  U,D        ; Copie U dans D
-        ADDD #RAMB_BASE-VIDEO_MEM  ; Ajoute offset RAMB
-        TFR  D,U        ; Remet dans U
-        STB  ,U         ; Écrit dans RAMB
-        STB  80,U       ; Double ligne
-        PULS A,U        ; Restaure U et A
+        LDB  ,X+        ; Quatrième pixel
+        BEQ  MM_PIX3_EMPTY
+        ORB  #$0F       ; Quatrième pixel blanc
+        BRA  MM_PIX3_SET
+MM_PIX3_EMPTY
+        ORB  #$00       ; Quatrième pixel noir
+MM_PIX3_SET
+        PSHS B         ; Sauve quatrième pixel
+        ORA  ,S+       ; Combine les pixels dans A
         
-        ; Passe aux pixels suivants
-        LEAU 1,U        ; Prochain octet
+        ; Écrit dans RAMB
+        PSHS U,A       ; Sauve pointeur et valeur
+        TFR  U,D
+        ADDD #RAMB_BASE-VIDEO_MEM
+        TFR  D,U
+        PULS A
+        STA  ,U        ; Écrit dans RAMB
+        STA  40,U      ; Double ligne en RAMB
+        PULS U         ; Restaure pointeur RAMA
         
-        PULS B          ; Récupère compteur
-        DECB            ; Décrémente compteur
-        BNE  MM_COL     ; Continue si pas fini
+        ; Passe au prochain octet
+        LEAU 1,U
+        
+        PULS B         ; Récupère compteur
+        DECB           ; Décrémente compteur
+        BNE  MM_COL    ; Continue si pas fini
         
         ; Passe à la ligne suivante
-        PULS U,B        ; Récupère pointeur base et compteur lignes
-        LEAU 160,U      ; Avance de 160 pixels (80 octets * 2 lignes)
-        DECB            ; Ligne suivante
-        BNE  MM_LOOP    ; Continue si pas fini
+        PULS U,B       ; Récupère pointeur base et compteur lignes
+        LEAU 80,U      ; Avance d'une ligne (80 octets)
+        DECB           ; Ligne suivante
+        BNE  MM_LOOP   ; Continue si pas fini
         
         ; Affiche position joueur
-        ;JSR  DRAW_PLAYER
+        JSR  DRAW_PLAYER
         RTS
-
+    
 ; Routine pour afficher la position du joueur sur la mini-map
 DRAW_PLAYER
         ; Calcul position X du joueur sur la mini-map

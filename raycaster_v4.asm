@@ -498,6 +498,15 @@ DRAW_PLAYER
         CMPA #1          ; Test si pixel 0 ou 1
         BNE  MM_PLAYER_RAMA_HIGH
         
+MM_PLAYER_RAMB        ; RAMB (pixels 2 et 3)
+        PSHS U         ; Sauve pointeur RAMA
+        TFR  U,D
+        ADDD #RAMB_BASE-VIDEO_MEM
+        TFR  D,U       ; U pointe maintenant sur RAMB
+        
+        CMPA #3        ; Test si pixel 2 ou 3
+        BEQ  MM_PLAYER_RAMB_LOW
+
 MM_PLAYER_RAMA_LOW     ; Pixel 1 (poids faible)
         LDA  ,U
         ANDA #$F0       ; Préserve poids fort
@@ -540,8 +549,8 @@ MM_PLAYER_RAMB_LOW    ; Pixel 3 (poids faible)
         ANDA #$F0
         ORA  #4
         STA  40,U
-        PULS U,PC
-
+        PULS U,PC        
+        
 VIDEO_INIT
         ; Désactive les interruptions
         ORCC #$50       

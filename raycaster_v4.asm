@@ -516,23 +516,14 @@ VIDEO_INIT
         LDA  #%01100000  ; D7=0, D6=1 (écriture), D5=1 (RAM active), D4-D0=00000 (page 0)
         STA  $E7E6       ; Mappe la page 0 en $0000
 
-        ; Désactive la palette matérielle
-        CLR  $E7DB      
-
         ; Passage en mode 160x200x16
-        LDA  #$7A       ; Mode bitmap 160x200 16 couleurs
-        STA  $E7C3      ; Registre mode écran
+        LDA  #%01111011  ; Mode bitmap 160x200 16 couleurs
+        STA  $E7DC       ; Registre mode écran
         
         ; Configuration Gate Array
-        CLR  $E7DC      ; Force registre 0
-        LDA  #$31       ; Mode 160x200, 16 couleurs, page 0 (00110001b)
-                       ; Bits 7-6 = 00 (page 0)
-                       ; Bits 5-0 = 110001 (mode 160x200)
-        STA  $E7DD      ; Configuration vidéo
+        LDA  #%00000000  ; Couleur tour ecran
+        STA  $E7DD       ; Registre systeme 2
                 
-        ; Force bordure noire et désactive palette
-        CLR  $E7DB
-
         ; Initialisation de la palette
         CLR  $E7DB      ; Désactive la palette
 
@@ -548,7 +539,7 @@ VI_PAL_LOOP
         STA  $E7DB      ; Écrit B
         DECB            ; Couleur suivante
         BPL  VI_PAL_LOOP ; Continue jusqu'à ce que B devienne négatif
-        
+
         ; Active la palette
         LDA  #$39
         STA  $E7DB

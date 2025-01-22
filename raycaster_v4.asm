@@ -386,8 +386,6 @@ GEN_LOOP
 
 ; Routine d'affichage de la mini-map
 DRAW_MINIMAP
-
-        BRA DRAW_PLAYER
         ; Pointeur vers début de la map
         LDX  #MAP
         ; Pointeur écran de base RAMA

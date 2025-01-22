@@ -127,7 +127,7 @@ INIT
         ; Position départ joueur
         LDD  #$1000    ; X=16.0
         STD  <PLAYERX
-        LDD  #$0700    ; Y=16.0
+        LDD  #$0C00    ; Y=12.0
         STD  <PLAYERY
         CLRA
         STA  <ANGLE    ; Angle=0

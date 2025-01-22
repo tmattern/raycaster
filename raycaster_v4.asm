@@ -75,28 +75,17 @@ BLOCKS      RMB  1      ; Compteur blocs
 COL_PTR     RMB  2      ; Pointeur colonne courante
 TEMP        RMB  1      ; Variable temporaire
 
-; Variables pour le code auto-modifiant
-SKY_CODE    RMB  2      ; Code pour le ciel
-WALL_CODE   RMB  2      ; Code pour le mur 
-FLOOR_CODE  RMB  2      ; Code pour le sol
-SKY_ADDR    RMB  2      ; Adresse pour le ciel
-WALL_ADDR   RMB  2      ; Adresse pour le mur
-FLOOR_ADDR  RMB  2      ; Adresse pour le sol
+DC_COLOR    RMB  1      ; Couleur de la colonne (0-15)
+DC_POS      RMB  1      ; Position dans le groupe de 4 pixels
+DC_PIX_VAL  RMB  1      ; Valeur de l'octet à écrire (masque + couleur)
+DC_PIX_MSK  RMB  1      ; Masque pour préserver les autres pixels
+DC_END_ADR  RMB  2      ; Adresse de fin selon RAMA/RAMB
+
 
 ; Tables et buffers 
 MAP_LINES   RMB  48     ; 24 pointeurs lignes map
 OFFS_8      RMB  8      ; Table offsets 8 pixels
 
-
-            ALIGN 256                ; Aligné sur 256 octets pour optimisation
-CODE_GEN_BUFFER
-        ; 8 lignes * 5 octets par instruction = 40 octets min par buffer
-        RMB  40                 ; Buffer pour le ciel
-        RMB  40                 ; Buffer pour le mur
-        RMB  40                 ; Buffer pour le sol
-CODE_SKY    EQU  CODE_GEN_BUFFER
-CODE_WALL   EQU  CODE_GEN_BUFFER+40
-CODE_FLOOR  EQU  CODE_GEN_BUFFER+80
 
 
 ; --------------- CODE PRINCIPAL ---------------
@@ -282,157 +271,131 @@ CALC_DIST
         STA  <HEIGHT
         RTS
 
+; Le code principal
+; Dessine une colonne de pixels
 DRAW_COL
-        ; Init pointeur écran
-        LDA  <CURR_COL
-        ADDA #RENDER_X  ; Ajoute offset pour alignement à droite (32)
-        LSRA           ; Divise par 4 car 4 pixels par octet
-        LSRA           ; (2 LSRA au lieu d'un)
-        LDX  #VIDEO_MEM 
-        LEAX A,X       ; X pointe maintenant sur le bon octet
-
-        ; Test position du pixel dans l'octet (0-3)
-        LDA  <CURR_COL
-        ADDA #RENDER_X  ; Réajoute offset
-        ANDA #3        ; Modulo 4 pour savoir quel pixel dans l'octet
-        CMPA #2        ; Compare avec 2 pour savoir si RAMA ou RAMB
-        BHS  PREP_RAMB ; Si >= 2 alors RAMB
-
-        ; RAMA (pixels 0 et 1)
-        CMPA #1        ; Test si pixel 0 ou 1
-        BNE  PREP_RAMA_HIGH
-
-PREP_RAMA_LOW        ; Pixel 1 (poids faible)
-        STX  <COL_PTR
-        LDD  #$F6A7    ; LDA pour poids faible
-        BRA  PREP_DONE
+        ; 1. Calcule l'adresse de base de la colonne (X = CURR_COL + 32)
+        LDA  <CURR_COL     ; 0-127
+        ADDA #RENDER_X     ; +32 -> 32-159
         
-PREP_RAMA_HIGH      ; Pixel 0 (poids fort)
-        STX  <COL_PTR
-        LDD  #$B6A7    ; LDA pour poids fort
-        BRA  PREP_DONE
-
-PREP_RAMB          ; RAMB (pixels 2 et 3)
-        PSHS X
-        TFR  X,D
-        ADDD #RAMB_BASE-VIDEO_MEM
-        TFR  D,X
-        STX  <COL_PTR
-        PULS X
+        ; Calcule l'octet de base (X/4) et la position dans l'octet (X%4)
+        PSHS A             ; Sauvegarde X pour calcul position
+        LSRA              ; X/4 pour avoir l'octet
+        LSRA
+        LDX  #VIDEO_MEM
+        LEAX A,X          ; Base + X/4
         
-        CMPA #3        ; Test si pixel 2 ou 3
-        BEQ  PREP_RAMB_LOW
+        ; Détermine RAMA/RAMB selon bit 1 de la position
+        PULS A            ; Récupère X
+        ANDA #3           ; Position 0-3
+        CMPA #2
+        BLO  DC_RAMA      ; Si < 2, reste en RAMA
 
-PREP_RAMB_HIGH     ; Pixel 2 (poids fort)
-        LDD  #$B6A7    ; LDA pour poids fort
-        BRA  PREP_DONE
 
-PREP_RAMB_LOW      ; Pixel 3 (poids faible)
-        LDD  #$F6A7    ; LDA pour poids faible
+DC_RAMB
+        LEAX RAMB_BASE,X   ; Passe en RAMB
+        LDD  #VIDEO_MEM+RAMB_BASE+8000  ; Limite pour RAMB
+        BRA  DC_SAVE_LIMIT
+DC_RAMA
+        LDD  #VIDEO_MEM+8000            ; Limite pour RAMA
+DC_SAVE_LIMIT
+        STD  <DC_END_ADR   ; Sauvegarde la limite
+        ANDA #1            ; Continue le code normal...
+        
+DC_POS_0                   ; Position 0 (poids fort)
+        LDA  #$0F          ; Masque pour préserver poids faible
+        STA  <DC_PIX_MSK   
+        LDA  #11x16        ; Couleur du ciel
+        BRA  DC_START_DRAW
+        
+DC_POS_1                   ; Position 1 (poids faible)
+        LDA  #$F0          ; Masque pour préserver poids fort
+        STA  <DC_PIX_MSK
+        LDA  #11           ; Couleur du ciel en position basse
 
-PREP_DONE
-        STD  SKY_CODE
-        STD  WALL_CODE
-        STD  FLOOR_CODE
+DC_START_DRAW
+        STA  <DC_PIX_VAL   ; Sauvegarde la valeur initiale du pixel
 
-        ; Met à jour le pointeur colonne
-        LDX  <COL_PTR
-        STX  SKY_ADDR
-        STX  WALL_ADDR
-        STX  FLOOR_ADDR
-
-        ; Génère directement le code ici 
-        LDX  #CODE_SKY   
-        LDY  #OFFS_8    
-        LDB  #8         
-
-DRAW_GEN_LOOP
-        ; Copie le code LDA/LDB de base
-        LDD  SKY_CODE    
-        STD  ,X          
-
-        ; Ajoute l'offset
-        LDA  ,Y+         
-        STA  2,X         
-
-        ; Détermine le masque selon la position
-        LDA  <CURR_COL
-        ADDA #RENDER_X
-        ANDA #3         
-        ANDA #1         
-        BNE  DRAW_GEN_LOW
-
-DRAW_GEN_HIGH
-        LDA  #$F0       
-        BRA  DRAW_GEN_MASK
-
-DRAW_GEN_LOW
-        LDA  #$0F       
-
-DRAW_GEN_MASK
-        STA  4,X        
-
-        LEAX 5,X        
-        DECB
-        BNE  DRAW_GEN_LOOP
-
-        ; Continue avec le dessin du ciel
+        ; 3. Calcule les hauteurs
         LDA  <HEIGHT
         NEGA
-        ADDA #CENTER_Y
-        LSRA
-        LSRA
-        LSRA
-        STA  <BLOCKS
-        BEQ  WALL
+        ADDA #CENTER_Y     ; Hauteur du ciel
+        PSHS A             ; Sauve hauteur ciel
+        LDA  <HEIGHT       ; Hauteur du mur
+        PSHS A             ; Sauve hauteur mur
 
-SKY     
-        JSR  CODE_SKY
-        LDX  SKY_ADDR
-        LEAX 40,X        ; +40 octets = ligne suivante
-        STX  SKY_ADDR
-        DEC  <BLOCKS
-        BNE  SKY
+        ; 4. Dessine la colonne complète
+        ; Ciel
+        LDA  ,S+           ; Hauteur ciel
+        BEQ  DC_WALL       ; Si pas de ciel, passe au mur
 
-; Dessine mur
-WALL    
-        LDA  <HEIGHT     ; Hauteur totale du mur
-        LSRA            ; Divise par 8 pour avoir nombre de blocs
-        LSRA
-        LSRA
-        STA  <BLOCKS     ; Sauvegarde nombre de blocs de 8 pixels
-        BEQ  REMAIN      ; Si pas de blocs complets, va aux pixels restants
+DC_SKY_LOOP
+        LDB  ,X            ; Lit l'octet
+        ANDB <DC_PIX_MSK   ; Masque
+        ORB  <DC_PIX_VAL   ; Ajoute pixel
+        STB  ,X            ; Écrit
+        
+        LEAX 40,X          ; Ligne suivante
+        DECA               ; Hauteur--
+        BNE  DC_SKY_LOOP
 
-WALL8   
-        JSR  CODE_WALL   ; Dessine bloc de 8 pixels
-        LDX  WALL_ADDR
-        LEAX 40,X        ; Passe à la ligne suivante (+40 octets)
-        STX  WALL_ADDR
-        DEC  <BLOCKS
-        BNE  WALL8
+        ; Mur
+DC_WALL
+        LDA  ,S+           ; Hauteur mur
+        BEQ  DC_FLOOR      ; Si pas de mur, passe au sol
+        
+        ; Prépare couleur mur (3)
+        TST  <DC_PIX_MSK    ; Test si on est en poids fort
+        BMI  DC_WALL_LOW    ; Si bit 7=0, position basse
+        LDB  #3*16
+        BRA  DC_WALL_SET
+DC_WALL_LOW
+        LDB  #3            ; Couleur en position basse
+DC_WALL_SET
+        STB  <DC_PIX_VAL
 
-        ; Gère les pixels restants (0-7)
-REMAIN  
-        LDA  <HEIGHT
-        ANDA #7          ; Garde les 3 bits de poids faible (reste division par 8)
-        BEQ  FLOOR       ; Si pas de pixels restants, passe au sol
-        STA  <BLOCKS     ; Nombre de pixels individuels à dessiner
+DC_WALL_LOOP
+        LDB  ,X            ; Lit l'octet
+        ANDB <DC_PIX_MSK   ; Masque
+        ORB  <DC_PIX_VAL   ; Ajoute pixel
+        STB  ,X            ; Écrit
+        
+        LEAX 40,X          ; Ligne suivante
+        DECA               ; Hauteur--
+        BNE  DC_WALL_LOOP
 
-WALL1   
-        JSR  CODE_WALL   ; Dessine pixel individuel
-        LDX  WALL_ADDR   
-        LEAX 40,X        ; Ligne suivante
-        STX  WALL_ADDR
-        DEC  <BLOCKS
-        BNE  WALL1
+        ; Sol (jusqu'en bas de l'écran)
+        ; Prépare couleur sol (6)
+        TST  <DC_PIX_MSK    ; Test si on est en poids fort
+        BMI  DC_FLOOR_LOW   ; Si bit 7=0, position basse
+        LDB  #6 * 16
+        BRA  DC_FLOOR_SET
+; Sol (jusqu'en bas de l'écran)
+DC_FLOOR                   ; <- Ajout de l'étiquette manquante
+        ; Prépare couleur sol (6)
+        TST  <DC_PIX_MSK    ; Test si on est en poids fort
+        BMI  DC_FLOOR_LOW   ; Si bit 7=0, position basse
+        LDB  #6*16
+        BRA  DC_FLOOR_SET
+DC_FLOOR_LOW
+        LDB  #6            ; Couleur en position basse
+DC_FLOOR_SET
+        STB  <DC_PIX_VAL
 
-FLOOR   
-        JSR  CODE_FLOOR
-        LDX  FLOOR_ADDR
-        LEAX 40,X        ; +40 octets = ligne suivante
-        STX  FLOOR_ADDR
-        CMPX #VIDEO_MEM+8000 ; Fin de l'écran
-        BLO  FLOOR
+DC_FLOOR_LOOP
+        CMPX <DC_END_ADR   ; Compare avec la bonne limite
+        BHS  DC_END
+        
+        LDB  ,X            ; Lit l'octet
+        ANDB <DC_PIX_MSK   ; Masque
+        ORB  <DC_PIX_VAL   ; Ajoute pixel
+        STB  ,X            ; Écrit
+        
+        LEAX 40,X          ; Ligne suivante
+        BRA  DC_FLOOR_LOOP
+
+DC_END
+        RTS
 
 ; Routine d'affichage de la mini-map
 DRAW_MINIMAP

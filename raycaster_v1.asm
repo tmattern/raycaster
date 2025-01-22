@@ -1,6 +1,6 @@
 ;	SYS vblast_address WITH REG(X)=VARPTR(line_height_array), REG(Y)=PEEK(VARPTR(color_array), REG(U)=PEEK(VARPTR(vblast_target))
+                opt c
                 LBRA DRAW_ALL
-
 
 ; constants
 SCREEN_HEIGHT   EQU 200      ; const screen height

@@ -21,6 +21,10 @@ CENTER_X    EQU  64     ; Centre horizontal de la fenêtre de rendu (128/2)
 MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 
+CODE_SKY    EQU  CODE_GEN_BUFFER
+CODE_WALL   EQU  CODE_GEN_BUFFER+40
+CODE_FLOOR  EQU  CODE_GEN_BUFFER+80
+
         ORG  $A000
         LBRA  START     ; Saut vers le code principal
 
@@ -85,10 +89,15 @@ FLOOR_ADDR  RMB  2      ; Adresse pour le sol
 
 ; Tables et buffers 
 MAP_LINES   RMB  48     ; 24 pointeurs lignes map
-OFFS_8      RMB  8      ; Table offsets 8 pixels  
-CODE_SKY    RMB  24     ; Code auto-modifiant ciel
-CODE_WALL   RMB  24     ; Code auto-modifiant mur
-CODE_FLOOR  RMB  24     ; Code auto-modifiant sol
+OFFS_8      RMB  8      ; Table offsets 8 pixels
+
+
+            ALIGN 256                ; Aligné sur 256 octets pour optimisation
+CODE_GEN_BUFFER
+        ; 8 lignes * 5 octets par instruction = 40 octets min par buffer
+        RMB  40                 ; Buffer pour le ciel
+        RMB  40                 ; Buffer pour le mur
+        RMB  40                 ; Buffer pour le sol
 
 ; --------------- CODE PRINCIPAL ---------------
 START   
@@ -339,76 +348,127 @@ PREP_DONE
         STA  <BLOCKS
         BEQ  WALL
 
-SKY     
-        JSR  CODE_SKY
-        LDD  SKY_ADDR
-        ADDD #640
-        STD  SKY_ADDR
-        DEC  <BLOCKS
-        BNE  SKY
 
-        ; Dessine mur
-WALL    
-        LDA  <HEIGHT
-        LSRA
-        LSRA
-        LSRA
-        STA  <BLOCKS
-        BEQ  REMAIN
+; Structure du code auto-modifiant pour un pixel (5 octets)
+; Byte 1: $B6 (LDA directe) / $F6 (LDA étendue)  - Instruction
+; Byte 2: Adresse haute (page vidéo)             - Adresse MSB
+; Byte 3: Offset dans la page                    - Adresse LSB
+; Byte 4: $A4 (ANDA) / $AA (ORA)                - Masque operation
+; Byte 5: $F0 ou $0F selon position             - Masque bits
 
-WALL8   
-        JSR  CODE_WALL
-        LDD  WALL_ADDR
-        ADDD #640
-        STD  WALL_ADDR
-        DEC  <BLOCKS
-        BNE  WALL8
-
-        ; Pixels restants
-REMAIN  
-        LDA  <HEIGHT
-        ANDA #7
-        BEQ  FLOOR
-        STA  <BLOCKS
-
-WALL1   
-        JSR  CODE_WALL
-        LDD  WALL_ADDR
-        ADDD #80
-        STD  WALL_ADDR
-        DEC  <BLOCKS
-        BNE  WALL1
-
-        ; Dessine sol
-FLOOR   
-        JSR  CODE_FLOOR
-        LDD  FLOOR_ADDR
-        ADDD #640
-        STD  FLOOR_ADDR
-        CMPD #VIDEO_MEM+16000
-        BLO  FLOOR
-
-        RTS
-
-; Génère code dessin
 GEN_DRAW_CODE
-        LDX  #CODE_SKY
-        LDY  #OFFS_8
-        LDB  #8
-GEN_LOOP    
-        LDD  SKY_CODE
-        STD  ,X
-        LDA  ,Y+
-        STA  2,X
-        LEAX 3,X
+        ; Sélectionne le masque selon la position du pixel
+        LDA  <CURR_COL
+        ADDA #RENDER_X
+        ANDA #3          ; Position 0-3 dans l'octet
+        PSHS A           ; Sauvegarde position
+        
+        ; Génère le code pour chaque ligne (8 pixels)
+        LDX  #CODE_SKY   ; Destination du code généré
+        LDY  #OFFS_8     ; Table des offsets
+        LDB  #8          ; 8 lignes à générer
+        
+GEN_LOOP
+        ; Première instruction : Charge byte
+        LDA  0,S         ; Récupère position pixel
+        CMPA #2
+        BHS  GEN_RAMB    ; Si >= 2, alors RAMB
+        
+GEN_RAMA
+        LDA  #$B6        ; LDA directe pour RAMA
+        STA  ,X          ; Stocke instruction
+        CLRA            ; MSB = $00 pour RAMA
+        BRA  GEN_ADDR
+        
+GEN_RAMB
+        LDA  #$F6        ; LDA étendue pour RAMB 
+        STA  ,X
+        LDA  #$20       ; MSB = $20 pour RAMB
+        
+GEN_ADDR
+        STA  1,X         ; Stocke MSB adresse
+        LDA  ,Y+         ; Offset dans la page
+        STA  2,X         ; Stocke LSB adresse
+        
+        ; Deuxième instruction : Masque et OR
+        LDA  #$A4        ; ANDA immédiat 
+        STA  3,X
+        
+        ; Sélection du masque selon position
+        LDA  0,S         ; Position 0-3
+        ANDA #1          ; Teste bit 0 pour savoir si poids fort/faible
+        BNE  GEN_LOW
+        
+GEN_HIGH
+        LDA  #$F0        ; Masque pour poids fort
+        BRA  GEN_MASK
+        
+GEN_LOW  
+        LDA  #$0F        ; Masque pour poids faible
+        
+GEN_MASK
+        STA  4,X         ; Stocke le masque
+        
+        ; Instruction suivante
+        LEAX 5,X         ; 5 octets par instruction
         DECB
         BNE  GEN_LOOP
-
-        LDX  <COL_PTR
+        
+        ; Initialise les pointeurs d'adresse
+        LDX  <COL_PTR    ; Adresse de base selon RAMA/RAMB
         STX  SKY_ADDR
         STX  WALL_ADDR
         STX  FLOOR_ADDR
-        RTS
+        
+        PULS A,PC        ; Restaure A et retour
+
+SKY     
+        JSR  CODE_SKY
+        LDX  SKY_ADDR
+        LEAX 40,X        ; +40 octets = ligne suivante
+        STX  SKY_ADDR
+        DEC  <BLOCKS
+        BNE  SKY
+
+; Dessine mur
+WALL    
+        LDA  <HEIGHT     ; Hauteur totale du mur
+        LSRA            ; Divise par 8 pour avoir nombre de blocs
+        LSRA
+        LSRA
+        STA  <BLOCKS     ; Sauvegarde nombre de blocs de 8 pixels
+        BEQ  REMAIN      ; Si pas de blocs complets, va aux pixels restants
+
+WALL8   
+        JSR  CODE_WALL   ; Dessine bloc de 8 pixels
+        LDX  WALL_ADDR
+        LEAX 40,X        ; Passe à la ligne suivante (+40 octets)
+        STX  WALL_ADDR
+        DEC  <BLOCKS
+        BNE  WALL8
+
+        ; Gère les pixels restants (0-7)
+REMAIN  
+        LDA  <HEIGHT
+        ANDA #7          ; Garde les 3 bits de poids faible (reste division par 8)
+        BEQ  FLOOR       ; Si pas de pixels restants, passe au sol
+        STA  <BLOCKS     ; Nombre de pixels individuels à dessiner
+
+WALL1   
+        JSR  CODE_WALL   ; Dessine pixel individuel
+        LDX  WALL_ADDR   
+        LEAX 40,X        ; Ligne suivante
+        STX  WALL_ADDR
+        DEC  <BLOCKS
+        BNE  WALL1
+
+FLOOR   
+        JSR  CODE_FLOOR
+        LDX  FLOOR_ADDR
+        LEAX 40,X        ; +40 octets = ligne suivante
+        STX  FLOOR_ADDR
+        CMPX #VIDEO_MEM+8000 ; Fin de l'écran
+        BLO  FLOOR
 
 ; Routine d'affichage de la mini-map
 DRAW_MINIMAP

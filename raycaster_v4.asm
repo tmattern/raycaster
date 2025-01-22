@@ -95,8 +95,8 @@ START
         ; Init système
         ORCC #$50       ; Désactive interruptions
         
-        ; Configure DP=$A0
-        LDA  #$A4       ; Correct car les variables sont en $A0xx
+        ; Configure DP=$A4
+        LDA  #$A4       ; Correct car les variables sont en $A4xx
         TFR  A,DP
         
         ; Init mode vidéo

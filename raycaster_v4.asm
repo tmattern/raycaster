@@ -386,6 +386,8 @@ GEN_LOOP
 
 ; Routine d'affichage de la mini-map
 DRAW_MINIMAP
+
+        BRA DRAW_PLAYER
         ; Pointeur vers début de la map
         LDX  #MAP
         ; Pointeur écran de base RAMA
@@ -467,51 +469,78 @@ MM_PIX3_SET
         RTS
     
 ; Routine pour afficher la position du joueur sur la mini-map
+; Routine pour afficher la position du joueur sur la mini-map
 DRAW_PLAYER
-        ; Calcul position X du joueur sur la mini-map
-        LDA  <PLAYERX+1  ; Partie entière de X
-        LDX  #VIDEO_MEM
-        LEAX A,X        ; X + offset = position horizontale
+        ; Calcul de la position écran du joueur
+        ; U contiendra l'adresse de base
+        LDU  #VIDEO_MEM
         
-        ; Calcul position Y
-        LDA  <PLAYERY+1  ; Partie entière de Y
-        LDB  #160       ; Largeur ligne = 80 * 2 (2 pixels de haut)
-        MUL             ; D = A * B = Y * 160
-        LEAX D,X        ; Ajoute offset vertical
+        ; Calcul offset Y (Y * 40 car 40 octets par ligne)
+        LDA  <PLAYERY    ; En big-endian, la partie entière est dans le premier octet
+        LDB  #40         ; 40 octets par ligne
+        MUL
+        LEAU D,U        ; Ajoute à l'adresse de base
         
-        ; Test si on doit écrire dans RAMA ou RAMB
-        TFR  X,D
-        ANDB #1
-        BEQ  MM_PLAYER_RAMA
-
-MM_PLAYER_RAMB
-        ; Position dans RAMB
-        TFR  X,D
-        ADDD #RAMB_BASE-VIDEO_MEM
-        TFR  D,X
-        ; Dessine le joueur en rouge (préserve les pixels pairs)
-        LDA  ,X
-        ANDA #$F0       ; Masque les pixels impairs
-        ORA  #$0F       ; Rouge en pixels impairs
-        STA  ,X
-        LDA  80,X
+        ; Calcul offset X
+        LDA  <PLAYERX    ; Position X
+        LSRA            ; Divise par 4 car 4 pixels par octet
+        LSRA
+        LEAU A,U        ; Ajoute à l'adresse de base
+        
+        ; Détermine le pixel dans l'octet
+        LDA  <PLAYERX    
+        ANDA #3          ; Modulo 4 pour savoir quel pixel dans l'octet
+        
+        CMPA #2          ; Compare avec 2 pour savoir si RAMA ou RAMB
+        BHS  MM_PLAYER_RAMB  ; Si >= 2, alors RAMB
+        
+        ; RAMA (pixels 0 et 1)
+        CMPA #1          ; Test si pixel 0 ou 1
+        BNE  MM_PLAYER_RAMA_HIGH
+        
+MM_PLAYER_RAMA_LOW     ; Pixel 1 (poids faible)
+        LDA  ,U
+        ANDA #$F0       ; Préserve poids fort
+        ORA  #4         ; Couleur 4 (rouge très vif) en poids faible
+        STA  ,U
+        LDA  40,U       ; 40 octets par ligne
         ANDA #$F0
-        ORA  #$0F
-        STA  80,X
+        ORA  #4
+        STA  40,U
         RTS
 
-MM_PLAYER_RAMA
-        ; Position dans RAMA
-        ; Dessine le joueur en rouge (préserve les pixels impairs)
-        LDA  ,X
-        ANDA #$0F       ; Masque les pixels pairs
-        ORA  #$F0       ; Rouge en pixels pairs
-        STA  ,X
-        LDA  80,X
+MM_PLAYER_RAMA_HIGH    ; Pixel 0 (poids fort)
+        LDA  ,U
+        ANDA #$0F       ; Préserve poids faible
+        ORA  #$40       ; Couleur 4 (rouge très vif) en poids fort
+        STA  ,U
+        LDA  40,U       ; 40 octets par ligne
         ANDA #$0F
-        ORA  #$F0
-        STA  80,X
+        ORA  #$40
+        STA  40,U
         RTS
+
+MM_PLAYER_RAMB_HIGH   ; Pixel 2 (poids fort)
+        LDA  ,U
+        ANDA #$0F      ; Préserve poids faible
+        ORA  #$40      ; Couleur 4 (rouge très vif) en poids fort
+        STA  ,U
+        LDA  40,U      ; 40 octets par ligne
+        ANDA #$0F
+        ORA  #$40
+        STA  40,U
+        PULS U,PC
+
+MM_PLAYER_RAMB_LOW    ; Pixel 3 (poids faible)
+        LDA  ,U
+        ANDA #$F0      ; Préserve poids fort
+        ORA  #4        ; Couleur 4 (rouge très vif) en poids faible
+        STA  ,U
+        LDA  40,U      ; 40 octets par ligne
+        ANDA #$F0
+        ORA  #4
+        STA  40,U
+        PULS U,PC
 
 VIDEO_INIT
         ; Désactive les interruptions

@@ -105,7 +105,7 @@ START
         JSR  INIT       ; Initialisation
         
 MAIN_LOOP
-        JSR  RAYCAST_FRAME
+        ; JSR  RAYCAST_FRAME
         JSR  DRAW_MINIMAP
         BRA  MAIN_LOOP
 
@@ -385,80 +385,65 @@ GEN_LOOP
         RTS
 
 ; Routine d'affichage de la mini-map
-; Routine d'affichage de la mini-map
 DRAW_MINIMAP
         ; Pointeur vers début de la map
         LDX  #MAP
-        ; Pointeur écran (début de l'écran)
-        LDY  #VIDEO_MEM
+        ; Pointeur écran de base
+        LDU  #VIDEO_MEM
         
         ; Pour chaque ligne de la map
         LDB  #MAP_H     ; 24 lignes
 MM_LOOP
-        PSHS B          ; Sauve compteur de lignes
+        PSHS B,U        ; Sauve compteur de lignes et pointeur base
         
-        ; Pour chaque colonne
-        LDA  #MAP_W     ; 32 colonnes
+        ; Pour chaque groupe de 4 pixels (2 cases de la map)
+        LDB  #16        ; 32 pixels = 16 groupes de 2 pixels
 MM_COL
-        ; Lecture de la valeur de la map
-        LDB  ,X+        
-        BEQ  MM_EMPTY   ; Si case vide (0)
+        PSHS B          ; Sauve compteur
         
-        ; Case pleine : dessiner un point blanc
-        LDB  #$F0       ; Couleur blanche en haute nibble
-        BRA  MM_DRAW
+        ; Premier pixel de la map (RAMA)
+        LDA  ,X+        ; Charge valeur map
+        BEQ  MM_PIX1_EMPTY
+        LDA  #$F0       ; Pixel blanc
+        BRA  MM_PIX1_SET
+MM_PIX1_EMPTY
+        LDA  #$00       ; Pixel noir
+MM_PIX1_SET
+        STA  ,U         ; Écrit dans RAMA
+        STA  80,U       ; Double ligne
         
-MM_EMPTY
-        LDB  #$00       ; Case vide en noir
+        ; Second pixel de la map (RAMB)
+        LDB  ,X+        ; Charge valeur map
+        BEQ  MM_PIX2_EMPTY
+        LDB  #$F0       ; Pixel blanc
+        BRA  MM_PIX2_SET
+MM_PIX2_EMPTY
+        LDB  #$00       ; Pixel noir
+MM_PIX2_SET
+        ; Calcul adresse RAMB
+        PSHS U,A        ; Sauve U et A
+        TFR  U,D        ; Copie U dans D
+        ADDD #RAMB_BASE-VIDEO_MEM  ; Ajoute offset RAMB
+        TFR  D,U        ; Remet dans U
+        STB  ,U         ; Écrit dans RAMB
+        STB  80,U       ; Double ligne
+        PULS A,U        ; Restaure U et A
         
-MM_DRAW
-        ; Test si on doit écrire dans RAMA ou RAMB
-        TFR  Y,D
-        ANDB #1
-        BEQ  MM_WRITE_RAMA
+        ; Passe aux pixels suivants
+        LEAU 1,U        ; Prochain octet
         
-MM_WRITE_RAMB
-        ; Écrire dans RAMB
-        PSHS Y
-        TFR  Y,D
-        ADDD #RAMB_BASE-VIDEO_MEM
-        TFR  D,Y
-        LDA  ,Y        ; Préserve les pixels pairs
-        ANDA #$F0      ; Masque les pixels impairs
-        ORB  A         ; Combine avec la nouvelle valeur
-        STA  ,Y        ; Pixel ligne 1
-        LDA  80,Y      ; Même chose pour ligne 2
-        ANDA #$F0
-        ORB  A
-        STA  80,Y
-        PULS Y
-        BRA  MM_NEXT
-        
-MM_WRITE_RAMA
-        ; Écrire dans RAMA
-        LDA  ,Y        ; Préserve les pixels impairs
-        ANDA #$0F      ; Masque les pixels pairs
-        ORB  A         ; Combine avec la nouvelle valeur
-        STA  ,Y        ; Pixel ligne 1
-        LDA  80,Y      ; Même chose pour ligne 2
-        ANDA #$0F
-        ORB  A
-        STA  80,Y
-
-MM_NEXT        
-        LEAY 1,Y        ; Pixel suivant
-        DECA           ; Décrémente compteur colonnes
-        BNE  MM_COL    ; Continue si pas fini la ligne
+        PULS B          ; Récupère compteur
+        DECB            ; Décrémente compteur
+        BNE  MM_COL     ; Continue si pas fini
         
         ; Passe à la ligne suivante
-        LEAY 80+48,Y    ; Saute une ligne (80) + reste de la ligne (48)
-        
-        PULS B          ; Récupère compteur de lignes
+        PULS U,B        ; Récupère pointeur base et compteur lignes
+        LEAU 160,U      ; Avance de 160 pixels (80 octets * 2 lignes)
         DECB            ; Ligne suivante
-        BNE  MM_LOOP    ; Continue si pas fini toutes les lignes
+        BNE  MM_LOOP    ; Continue si pas fini
         
         ; Affiche position joueur
-        JSR  DRAW_PLAYER
+        ;JSR  DRAW_PLAYER
         RTS
 
 ; Routine pour afficher la position du joueur sur la mini-map

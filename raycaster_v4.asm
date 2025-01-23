@@ -289,10 +289,8 @@ CALC_DIST
         BRA  SAVE_HEIGHT
 
 DIST_OK
-        ; DIST est en format 8.8 dans D
-        ; On veut calculer (200*256)/DIST
-
-        ; Si DIST = 0, force à 1 pour éviter division par 0
+        ; Si DIST = 0, force à 1
+        LDD  <DIST
         CMPD #0
         BNE  DIST_DIV
         LDD  #1
@@ -301,54 +299,50 @@ DIST_DIV
         ; Sauvegarde DIST
         PSHS D           ; Sauvegarde diviseur
         
-        ; Charge 200*256 (51200) dans D
         LDD  #51200      ; 200 * 256
-        
-        ; Division 16 bits par 16 bits
-        ; D = dividende (51200)
-        ; pile = diviseur (DIST)
         JSR  DIV_16B
         
-        ; Vérifie que la hauteur ne dépasse pas 200
+        ; Vérifie hauteur max
         CMPA #200
-        BLS  SAVE_HEIGHT  ; Si <= 200, ok
-        LDA  #200        ; Sinon force à 200
+        BLS  SAVE_HEIGHT
+        LDA  #200
 
 SAVE_HEIGHT
-        LEAS 2,S         ; Nettoie la pile
+        LEAS 2,S        ; Nettoie la pile
         STA  <HEIGHT
         RTS
 
 ; Division 16 bits non signée
-; Entrée : D = dividende, pile = diviseur
-; Sortie : A = quotient
+; Entrée : D = dividende (51200), pile = diviseur (DIST)
+; Sortie : A = quotient (limité à 255)
 DIV_16B
         PSHS D          ; Sauvegarde dividende
-        CLR  ,-S        ; Quotient poids fort
-        CLR  ,-S        ; Quotient poids faible
-        LDB  #16        ; Compteur de bits
+        CLRA            ; Initialise quotient à 0
+        PSHS A
+        
 DIV_LOOP
-        ; Décale dividende de 1 bit à gauche
-        LSL  3,S        ; Décale octet faible
-        ROL  2,S        ; Décale octet fort avec carry
-        ROL  1,S        ; Décale quotient faible
-        ROL  0,S        ; Décale quotient fort
+        ; Compare dividende avec diviseur
+        LDD  1,S        ; Charge dividende
+        SUBD 3,S        ; Soustrait diviseur
+        BLO  DIV_END    ; Si < diviseur, fin
         
-        ; Compare dividende partiel avec diviseur
-        LDD  0,S        ; Charge quotient
-        SUBD 4,S        ; Soustrait diviseur
-        BCS  DIV_NEXT   ; Si carry, pas de soustraction
+        ; Si >= diviseur, soustrait et incrémente quotient
+        STD  1,S        ; Sauvegarde reste
+        LDA  0,S        ; Charge quotient
+        INCA            ; Incrémente quotient
+        BEQ  DIV_MAX    ; Si quotient devient 0, on a dépassé 255
+        STA  0,S        ; Sauvegarde quotient
+        BRA  DIV_LOOP
+
+DIV_MAX
+        LDA  #255       ; Force quotient maximum
+        BRA  DIV_CLEAN
         
-        ; Si >= diviseur, soustrait et met 1 dans quotient
-        STD  0,S        ; Sauvegarde résultat
-        INC  3,S        ; Met 1 dans bit 0 du quotient
-DIV_NEXT
-        DECB            ; Décrément compteur
-        BNE  DIV_LOOP   ; Continue si pas fini
-        
-        ; Copie résultat dans A
-        LDA  3,S        ; Charge octet faible du quotient
-        LEAS 6,S        ; Nettoie la pile
+DIV_END
+        LDA  0,S        ; Charge quotient
+
+DIV_CLEAN
+        LEAS 3,S        ; Nettoie la pile (dividende + quotient)
         RTS
 
 DRAW_COL

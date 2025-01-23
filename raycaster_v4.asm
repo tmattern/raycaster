@@ -164,7 +164,7 @@ COL     ; Pour chaque colonne de la fenêtre de rendu
 CALC_RAY
         LDA  <CURR_COL
         SUBA #CENTER_X  ; Centre de la fenêtre
-        ASRA           ; /2 pour FOV
+        LSRA           ; /2 pour FOV
         ADDA <ANGLE    ; + angle joueur
         STA  <TEMP     ; Sauvegarde angle
         

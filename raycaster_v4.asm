@@ -279,42 +279,46 @@ HITVERT
         STA  <SIDE
 
 CALC_DIST    
-        STD  <DIST         ; Sauvegarde la distance (8.8)
+        STD  <DIST      ; Sauvegarde la distance (en 8.8)
 
-        ; Si DIST = 0, forcer une petite distance non nulle
+        ; Si distance = 0, force hauteur max
         BNE  DIST_OK
-        LDD  #$0100    ; Force distance minimale de 1.0
-        STD  <DIST        
-        
-DIST_OK
-        ; Nouvelle méthode de calcul de la hauteur
-        LDA  <DIST     ; Partie entière de la distance
-        BEQ  FORCE_MAX  ; Ne devrait plus arriver
-        
-        ; Division modifiée pour éviter division par 0
-        LDB  #100      ; Hauteur de base
-DIV_LOOP
-        SUBA #1        ; Soustrait 1 du diviseur
-        BEQ  DIV_END   ; Si diviseur = 0, fin
-        SUBB #1        ; Décrémente résultat
-        BNE  DIV_LOOP  ; Continue si pas 0
-
-DIV_END
-        PULS B           ; Nettoie la pile
-        
-        ; A contient maintenant la hauteur
-        CMPA #200        ; Compare avec hauteur max
-        BHS  FORCE_MAX
-        
-        ; Debug - Affiche hauteur calculée
-        PSHS A
-        ORA  #$10        ; Bleu
-        STA  2,X         ; Affiche hauteur en bleu
-        PULS A
+        LDA  #200
         BRA  SAVE_HEIGHT
+
+DIST_OK
+        ; Debug: affiche les composants de la distance
+        PSHS A,B        ; Sauvegarde distance
+        LDX  #VIDEO_MEM
+        ; Affiche partie entière (A) en rouge
+        ORA  #$40       ; Force en rouge
+        STA  ,X
+        ; Affiche partie fractionnaire (B) en vert
+        PULS A,B        ; Récupère distance
+        ORB  #$20       ; Force en vert
+        STB  1,X
+        
+        ; Division de (100 * 256) par DIST
+        ; DIST est en 8.8, donc on divise 25600 par DIST
+        LDD  #25600     ; 100 * 256
+        LDX  #0         ; Compteur (sera la hauteur)
+        
+DIV_LOOP
+        CMPD <DIST      ; Compare avec distance
+        BLO  DIV_END    ; Si plus petit, fin
+        SUBD <DIST      ; Soustrait la distance
+        LEAX 1,X        ; Incrémente hauteur
+        CPX  #200       ; Check hauteur max
+        BHS  FORCE_MAX
+        BRA  DIV_LOOP
 
 FORCE_MAX
         LDA  #200
+        BRA  SAVE_HEIGHT
+        
+DIV_END
+        TFR  X,D        ; Met le résultat dans D
+        STA  <HEIGHT    ; Sauvegarde la hauteur
 
 SAVE_HEIGHT
         STA  <HEIGHT
@@ -322,9 +326,13 @@ SAVE_HEIGHT
         
 ; Le code principal
 ; Dessine une colonne de pixels
-; Le code principal
-; Dessine une colonne de pixels
+
 DRAW_COL
+        ; Vérifie si on a une hauteur valide
+        LDA  <HEIGHT
+        BNE  DC_START   ; Si HEIGHT != 0, continue
+        RTS             ; Sinon, sort immédiatement
+DC_START
         ; 1. Calcule l'adresse de base de la colonne (X = CURR_COL + 32)
         LDA  <CURR_COL     ; 0-127
         ADDA #RENDER_X     ; +32 -> 32-159

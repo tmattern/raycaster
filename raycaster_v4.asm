@@ -281,48 +281,58 @@ HITVERT
 CALC_DIST    
         STD  <DIST      ; Sauvegarde la distance (en 8.8)
 
-        ; Si distance = 0, force hauteur max
-        BNE  DIST_OK
-        LDA  #200
+        ; Si distance = 0 (teste les deux octets)
+        TFR  D,X        ; Copie la distance dans X pour test
+        LEAX 0,X        ; Met à jour les flags sur les 16 bits
+        BNE  DIST_OK    ; Si X!=0, calcul normal
+        LDA  #200       ; Sinon force hauteur max
         BRA  SAVE_HEIGHT
 
 DIST_OK
-        ; Debug: affiche les composants de la distance
-        PSHS A,B        ; Sauvegarde distance
-        LDX  #VIDEO_MEM
-        ; Affiche partie entière (A) en rouge
-        ORA  #$40       ; Force en rouge
-        STA  ,X
-        ; Affiche partie fractionnaire (B) en vert
-        PULS A,B        ; Récupère distance
-        ORB  #$20       ; Force en vert
-        STB  1,X
+        ; DIST est en 8.8 :
+        ; A = partie entière (déjà dans A du LDD <DIST précédent)
+        ; B = partie fractionnaire
+        ; On va diviser 200 par la distance
         
-        ; Division de (100 * 256) par DIST
-        ; DIST est en 8.8, donc on divise 25600 par DIST
-        LDD  #25600     ; 100 * 256
-        LDX  #0         ; Compteur (sera la hauteur)
+        ; Si partie entière est 0, on utilise la partie fractionnaire
+        TSTA 
+        BNE  DIST_USE_INT   ; Si partie entière non nulle
+        ; Sinon on utilise partie fractionnaire
+        TFR  B,A
+        BRA  DIV_START
         
-DIV_LOOP
-        CMPD <DIST      ; Compare avec distance
-        BLO  DIV_END    ; Si plus petit, fin
-        SUBD <DIST      ; Soustrait la distance
-        LEAX 1,X        ; Incrémente hauteur
-        CPX  #200       ; Check hauteur max
-        BHS  FORCE_MAX
-        BRA  DIV_LOOP
+DIST_USE_INT
+        ; On utilise la partie entière qui est déjà dans A
 
-FORCE_MAX
-        LDA  #200
-        BRA  SAVE_HEIGHT
+DIV_START        
+        ; A contient maintenant notre diviseur
+        PSHS A            ; Sauvegarde diviseur
+        LDA  #200        ; SCREEN_H (dividende)
+        LDB  ,S+         ; Récupère diviseur
+        JSR  DIV_8B      ; Division 8 bits (A/B -> A)
         
-DIV_END
-        TFR  X,D        ; Met le résultat dans D
-        STA  <HEIGHT    ; Sauvegarde la hauteur
-
+        ; Résultat dans A
 SAVE_HEIGHT
         STA  <HEIGHT
         RTS
+
+; Division 8 bits non signée
+; Entrée : A = dividende, B = diviseur
+; Sortie : A = quotient
+DIV_8B  
+        PSHS B          ; Sauvegarde diviseur
+        LDB  #8         ; Compteur = 8 bits
+        ANDCC #$FE      ; Clear carry
+DIV_LOOP
+        ROLA            ; Décale dividende dans A
+        CMPA ,S         ; Compare avec diviseur
+        BCS  DIV_NEXT   ; Si carry, pas de soustraction
+        SUBA ,S         ; Soustrait le diviseur
+DIV_NEXT
+        DECB            ; Décrément compteur
+        BNE  DIV_LOOP   ; Continue si pas fini
+        ROLA            ; Dernier décalage pour quotient
+        PULS B,PC       ; Restaure B et retourne
         
 ; Le code principal
 ; Dessine une colonne de pixels

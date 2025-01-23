@@ -171,22 +171,16 @@ CALC_RAY
         ; DELTAY = 256/sin(angle)
         LDX  #SINTAB
         LDB  A,X       ; B = sin(angle) (-128 à 127)
-        LDA  #0        ; A = 0
-        TFR  D,Y       ; Sauvegarde sin dans Y
-        LDD  #256      ; D = 256
-        EXG  D,Y       ; Échange D et Y pour avoir : D=sin, Y=256
-        JSR  DIV8      ; Divise Y par D (256/sin) -> résultat dans A:B
+        CLRA           ; A = 0 (juste pour être propre)
+        JSR  DIV8      ; Divise 256 par B -> résultat dans A:B
         STD  <DELTAY   ; Stocke le résultat en format 8.8
         
         ; DELTAX = 256/cos(angle)
         LDX  #COSTAB
         LDA  <TEMP     ; Récupère angle
         LDB  A,X       ; B = cos(angle) (-128 à 127)
-        LDA  #0        ; A = 0
-        TFR  D,Y       ; Sauvegarde cos dans Y
-        LDD  #256      ; D = 256
-        EXG  D,Y       ; Échange D et Y
-        JSR  DIV8      ; Divise Y par D (256/cos)
+        CLRA           ; A = 0
+        JSR  DIV8      ; Divise 256 par B
         STD  <DELTAX   ; Stocke le résultat en format 8.8
         RTS
 
@@ -351,26 +345,27 @@ DIV_CLEAN
         LEAS 3,S        ; Nettoie la pile (dividende + quotient)
         RTS
 
-; Division 8 bits
-; Entrée : D = diviseur 8 bits (dans B), Y = dividende (256)
+; Division 8 bits : 256/valeur
+; Entrée : D = diviseur 8 bits (la valeur de sin ou cos dans B)
 ; Sortie : D = résultat en format 8.8
-DIV8
-        PSHS Y          ; Sauvegarde dividende (256)
-        CLR  <TEMP     ; Init compteur à 0
-        
+DIV8    
+        TSTB           ; Test si diviseur = 0
+        BNE  DIV8_START
+        LDD  #$7FFF    ; Si diviseur = 0, retourne valeur max
+        RTS
+
+DIV8_START
+        PSHS B         ; Sauvegarde diviseur
+        LDD  #256      ; Dividende = 256
 DIV8_LOOP
-        CMPD ,S        ; Compare avec dividende
-        BHS  DIV8_END  ; Si >= dividende, fin
-        
-        ; Si < dividende, soustrait et incrémente compteur
-        ADDD ,S        ; Ajoute dividende
-        INC  <TEMP     ; Incrémente compteur
+        SUBB ,S        ; Soustrait le diviseur
+        BCS  DIV8_END  ; Si Carry, on a dépassé
+        INCA           ; Incrémente le quotient
         BRA  DIV8_LOOP
-        
+
 DIV8_END
-        LDA  <TEMP     ; Charge compteur dans A
         CLRB           ; Partie fractionnaire = 0
-        LEAS 2,S       ; Nettoie la pile
+        LEAS 1,S       ; Nettoie la pile
         RTS
 
 DRAW_COL

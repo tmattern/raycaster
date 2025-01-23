@@ -168,20 +168,26 @@ CALC_RAY
         ADDA <ANGLE    ; + angle joueur
         STA  <TEMP     ; Sauvegarde angle
         
-        ; DELTAY = sin(angle) en format 8.8
+        ; DELTAY = 256/sin(angle)
         LDX  #SINTAB
-        LDA  A,X       ; A = sin(angle) = partie entière
-        STA  <DELTAY   ; Partie entière
-        CLRB           ; B = 0 = partie fractionnaire
-        STB  <DELTAY+1
+        LDB  A,X       ; B = sin(angle) (-128 à 127)
+        LDA  #0        ; A = 0
+        TFR  D,Y       ; Sauvegarde sin dans Y
+        LDD  #256      ; D = 256
+        EXG  D,Y       ; Échange D et Y pour avoir : D=sin, Y=256
+        JSR  DIV8      ; Divise Y par D (256/sin) -> résultat dans A:B
+        STD  <DELTAY   ; Stocke le résultat en format 8.8
         
-        ; DELTAX = cos(angle) en format 8.8
+        ; DELTAX = 256/cos(angle)
         LDX  #COSTAB
         LDA  <TEMP     ; Récupère angle
-        LDA  A,X       ; A = cos(angle) = partie entière
-        STA  <DELTAX   ; Partie entière
-        CLRB           ; B = 0 = partie fractionnaire
-        STB  <DELTAX+1
+        LDB  A,X       ; B = cos(angle) (-128 à 127)
+        LDA  #0        ; A = 0
+        TFR  D,Y       ; Sauvegarde cos dans Y
+        LDD  #256      ; D = 256
+        EXG  D,Y       ; Échange D et Y
+        JSR  DIV8      ; Divise Y par D (256/cos)
+        STD  <DELTAX   ; Stocke le résultat en format 8.8
         RTS
 
 ; Raycasting DDA optimisé
@@ -343,6 +349,28 @@ DIV_END
 
 DIV_CLEAN
         LEAS 3,S        ; Nettoie la pile (dividende + quotient)
+        RTS
+
+; Division 8 bits
+; Entrée : D = diviseur 8 bits (dans B), Y = dividende (256)
+; Sortie : D = résultat en format 8.8
+DIV8
+        PSHS Y          ; Sauvegarde dividende (256)
+        CLR  <TEMP     ; Init compteur à 0
+        
+DIV8_LOOP
+        CMPD ,S        ; Compare avec dividende
+        BHS  DIV8_END  ; Si >= dividende, fin
+        
+        ; Si < dividende, soustrait et incrémente compteur
+        ADDD ,S        ; Ajoute dividende
+        INC  <TEMP     ; Incrémente compteur
+        BRA  DIV8_LOOP
+        
+DIV8_END
+        LDA  <TEMP     ; Charge compteur dans A
+        CLRB           ; Partie fractionnaire = 0
+        LEAS 2,S       ; Nettoie la pile
         RTS
 
 DRAW_COL

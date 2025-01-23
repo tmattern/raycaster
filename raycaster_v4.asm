@@ -289,53 +289,67 @@ CALC_DIST
         BRA  SAVE_HEIGHT
 
 DIST_OK
-        ; DIST est en 8.8 :
-        ; A = partie entière (déjà dans A du LDD <DIST précédent)
-        ; B = partie fractionnaire
-        ; On va diviser 200 par la distance
-        
-        ; Si partie entière est 0, on utilise la partie fractionnaire
-        TSTA 
-        BNE  DIST_USE_INT   ; Si partie entière non nulle
-        ; Sinon on utilise partie fractionnaire
-        TFR  B,A
-        BRA  DIV_START
-        
-DIST_USE_INT
-        ; On utilise la partie entière qui est déjà dans A
+        ; DIST est en format 8.8 dans D
+        ; On veut calculer (200*256)/DIST
 
-DIV_START        
-        ; A contient maintenant notre diviseur
-        PSHS A            ; Sauvegarde diviseur
-        LDA  #200        ; SCREEN_H (dividende)
-        LDB  ,S+         ; Récupère diviseur
-        JSR  DIV_8B      ; Division 8 bits (A/B -> A)
+        ; Si DIST = 0, force à 1 pour éviter division par 0
+        CMPD #0
+        BNE  DIST_DIV
+        LDD  #1
+
+DIST_DIV
+        ; Sauvegarde DIST
+        PSHS D           ; Sauvegarde diviseur
         
-        ; Résultat dans A
+        ; Charge 200*256 (51200) dans D
+        LDD  #51200      ; 200 * 256
+        
+        ; Division 16 bits par 16 bits
+        ; D = dividende (51200)
+        ; pile = diviseur (DIST)
+        JSR  DIV_16B
+        
+        ; Vérifie que la hauteur ne dépasse pas 200
+        CMPA #200
+        BLS  SAVE_HEIGHT  ; Si <= 200, ok
+        LDA  #200        ; Sinon force à 200
+
 SAVE_HEIGHT
+        LEAS 2,S         ; Nettoie la pile
         STA  <HEIGHT
         RTS
 
-; Division 8 bits non signée
-; Entrée : A = dividende, B = diviseur
+; Division 16 bits non signée
+; Entrée : D = dividende, pile = diviseur
 ; Sortie : A = quotient
-DIV_8B  
-        PSHS B          ; Sauvegarde diviseur
-        LDB  #8         ; Compteur = 8 bits
-        ANDCC #$FE      ; Clear carry
+DIV_16B
+        PSHS D          ; Sauvegarde dividende
+        CLR  ,-S        ; Quotient poids fort
+        CLR  ,-S        ; Quotient poids faible
+        LDB  #16        ; Compteur de bits
 DIV_LOOP
-        ROLA            ; Décale dividende dans A
-        CMPA ,S         ; Compare avec diviseur
+        ; Décale dividende de 1 bit à gauche
+        LSL  3,S        ; Décale octet faible
+        ROL  2,S        ; Décale octet fort avec carry
+        ROL  1,S        ; Décale quotient faible
+        ROL  0,S        ; Décale quotient fort
+        
+        ; Compare dividende partiel avec diviseur
+        LDD  0,S        ; Charge quotient
+        SUBD 4,S        ; Soustrait diviseur
         BCS  DIV_NEXT   ; Si carry, pas de soustraction
-        SUBA ,S         ; Soustrait le diviseur
+        
+        ; Si >= diviseur, soustrait et met 1 dans quotient
+        STD  0,S        ; Sauvegarde résultat
+        INC  3,S        ; Met 1 dans bit 0 du quotient
 DIV_NEXT
         DECB            ; Décrément compteur
         BNE  DIV_LOOP   ; Continue si pas fini
-        ROLA            ; Dernier décalage pour quotient
-        PULS B,PC       ; Restaure B et retourne
         
-; Le code principal
-; Dessine une colonne de pixels
+        ; Copie résultat dans A
+        LDA  3,S        ; Charge octet faible du quotient
+        LEAS 6,S        ; Nettoie la pile
+        RTS
 
 DRAW_COL
         ; Vérifie si on a une hauteur valide

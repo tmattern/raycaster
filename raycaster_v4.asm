@@ -379,16 +379,19 @@ DC_POS_LOW               ; Position 1 ou 3 (poids faible)
         STA  <DC_PIX_MSK
         LDA  #11           ; Couleur du ciel en position basse
 
+
 DC_START_DRAW
         STA  <DC_PIX_VAL   ; Sauvegarde la valeur initiale du pixel
 
-        ; 3. Calcule les hauteurs
-        LDA  <HEIGHT
-        NEGA
-        ADDA #CENTER_Y     ; Hauteur du ciel
-        PSHS A             ; Sauve hauteur ciel
-        LDA  <HEIGHT       ; Hauteur du mur
-        PSHS A             ; Sauve hauteur mur
+        ; 3. Calcule les hauteurs de manière symétrique
+        ; Hauteur du ciel = (CENTER_Y - HEIGHT)/2 pour être symétrique avec le sol
+        LDA  #CENTER_Y     ; 100 (milieu écran)
+        SUBA <HEIGHT       ; CENTER_Y - HEIGHT 
+        LSRA              ; Divise par 2 pour hauteur du ciel
+        PSHS A            ; Sauve hauteur ciel
+        
+        LDA  <HEIGHT      ; Hauteur totale du mur
+        PSHS A            ; Sauve hauteur mur
 
         ; 4. Dessine la colonne complète
         ; Ciel

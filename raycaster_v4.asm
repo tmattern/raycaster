@@ -163,19 +163,25 @@ COL     ; Pour chaque colonne de la fenêtre de rendu
 
 CALC_RAY
         LDA  <CURR_COL
-        SUBA #CENTER_X  ; Centre de la fenêtre de rendu (64) au lieu de 80
+        SUBA #CENTER_X  ; Centre de la fenêtre
         ASRA           ; /2 pour FOV
         ADDA <ANGLE    ; + angle joueur
         STA  <TEMP     ; Sauvegarde angle
         
+        ; DELTAY = sin(angle) en format 8.8
         LDX  #SINTAB
-        LDA  A,X        ; sin(angle)
-        STA  <DELTAY
+        LDA  A,X       ; A = sin(angle) = partie entière
+        STA  <DELTAY   ; Partie entière
+        CLRB           ; B = 0 = partie fractionnaire
+        STB  <DELTAY+1
         
+        ; DELTAX = cos(angle) en format 8.8
         LDX  #COSTAB
-        LDA  <TEMP      ; Récupère angle
-        LDA  A,X        ; cos(angle)
-        STA  <DELTAX
+        LDA  <TEMP     ; Récupère angle
+        LDA  A,X       ; A = cos(angle) = partie entière
+        STA  <DELTAX   ; Partie entière
+        CLRB           ; B = 0 = partie fractionnaire
+        STB  <DELTAX+1
         RTS
 
 ; Raycasting DDA optimisé
@@ -190,48 +196,58 @@ RAYCAST
         STX  <MAP_PTR
 
         ; Init deltas
+        ; Pour DELTAX/DELTAY:
+        ; - Octet haut (A) = partie entière (valeur de sin/cos)
+        ; - Octet bas (B) = partie fractionnaire (0 dans notre cas)
+        
         LDA  <DELTAX
         BPL  POSX
-        LDA  #-1
+        LDA  #-1        ; STEPX = -1
         STA  <STEPX
-        NEGB
+        ; Négation 16 bits pour le delta
+        LDD  <DELTAX    ; D = partie_entiere.partie_fract
+        COMA            ; Inverse les bits de A
+        COMB            ; Inverse les bits de B
+        ADDD #1        ; +1 pour compléter la négation
         BRA  SAVEX
 POSX    
-        LDA  #1
+        LDA  #1         ; STEPX = 1
         STA  <STEPX
+        LDD  <DELTAX    ; Charge tel quel
 SAVEX   
-        STB  <SIDEX+1
-        CLRA
-        STA  <SIDEX
+        STD  <SIDEX     ; Sauvegarde en format 8.8
 
         LDA  <DELTAY
         BPL  POSY
-        LDA  #-1
+        LDA  #-1        ; STEPY = -1
         STA  <STEPY
-        NEGB
+        ; Négation 16 bits pour le delta
+        LDD  <DELTAY    ; D = partie_entiere.partie_fract
+        COMA            ; Inverse les bits de A
+        COMB            ; Inverse les bits de B
+        ADDD #1        ; +1 pour compléter la négation
         BRA  SAVEY
 POSY    
-        LDA  #1
+        LDA  #1         ; STEPY = 1
         STA  <STEPY
+        LDD  <DELTAY    ; Charge tel quel
 SAVEY   
-        STB  <SIDEY+1
-        CLRA
-        STA  <SIDEY
+        STD  <SIDEY     ; Sauvegarde en format 8.8
 
-; Boucle DDA ultra optimisée
+; Boucle DDA optimisée
 DDA_LOOP    
         LDD  <SIDEX
-        CMPD <SIDEY
-        BHS  DO_STEPY      ; Si SIDEX >= SIDEY, on va en Y
+        CMPD <SIDEY    ; Compare les distances en format 8.8
+        BHS  DO_STEPY   ; Si SIDEX >= SIDEY, on avance en Y
 
-DO_STEPX                   ; Cas par défaut : on avance en X
+DO_STEPX                ; Cas par défaut : on avance en X
         LDX  <MAP_PTR
-        LEAX STEPX,X
+        LEAX STEPX,X    ; Avance dans la direction X
         STX  <MAP_PTR
-        LDA  ,X
-        BNE  HITHORZ
+        LDA  ,X         ; Lit la case
+        BNE  HITHORZ    ; Si mur, collision horizontale
         LDD  <SIDEX
-        ADDD <DELTAX
+        ADDD <DELTAX    ; Ajoute DELTAX (en 8.8)
         STD  <SIDEX
         BRA  DDA_LOOP
 
@@ -246,24 +262,24 @@ UP
         LEAX MAP_W,X
 SAVEY2  
         STX  <MAP_PTR
-        LDA  ,X
-        BNE  HITVERT
+        LDA  ,X         ; Lit la case
+        BNE  HITVERT    ; Si mur, collision verticale
         LDD  <SIDEY
-        ADDD <DELTAY
+        ADDD <DELTAY    ; Ajoute DELTAY (en 8.8)
         STD  <SIDEY
         BRA  DDA_LOOP
 
 HITHORZ
-        LDD  <SIDEX
+        LDD  <SIDEX     ; Distance en format 8.8
         CLR  <SIDE
         BRA  CALC_DIST
 HITVERT
-        LDD  <SIDEY
+        LDD  <SIDEY     ; Distance en format 8.8
         LDA  #1
         STA  <SIDE
 
 CALC_DIST    
-        STD  <DIST         ; Sauvegarde la distance
+        STD  <DIST      ; Sauvegarde la distance (en 8.8)
 
         ; Si distance = 0, force hauteur max
         BNE  DIST_OK
@@ -271,38 +287,41 @@ CALC_DIST
         BRA  SAVE_HEIGHT
 
 DIST_OK
+        ; Debug: affiche les composants de la distance
+        PSHS A,B        ; Sauvegarde distance
+        LDX  #VIDEO_MEM
+        ; Affiche partie entière (A) en rouge
+        ORA  #$40       ; Force en rouge
+        STA  ,X
+        ; Affiche partie fractionnaire (B) en vert
+        PULS A,B        ; Récupère distance
+        ORB  #$20       ; Force en vert
+        STB  1,X
+        
         ; Division de (100 * 256) par DIST
-        ; On fait une division par soustraction successive
-        LDD  #25600        ; 100 * 256
-        LDX  #0           ; Compteur (sera la hauteur)
+        ; DIST est en 8.8, donc on divise 25600 par DIST
+        LDD  #25600     ; 100 * 256
+        LDX  #0         ; Compteur (sera la hauteur)
         
 DIV_LOOP
-        CMPD <DIST        ; Compare avec distance
-        BLO  DIV_END      ; Si plus petit, fin
-        SUBD <DIST        ; Soustrait la distance
-        LEAX 1,X          ; Incrémente compteur
-        CPX  #200         ; Check si on dépasse hauteur max
-        BHS  FORCE_MAX    ; Si oui, force hauteur max
-        BRA  DIV_LOOP     ; Continue division
+        CMPD <DIST      ; Compare avec distance
+        BLO  DIV_END    ; Si plus petit, fin
+        SUBD <DIST      ; Soustrait la distance
+        LEAX 1,X        ; Incrémente hauteur
+        CPX  #200       ; Check hauteur max
+        BHS  FORCE_MAX
+        BRA  DIV_LOOP
         
 FORCE_MAX
         LDA  #200
         BRA  SAVE_HEIGHT
         
 DIV_END
-        TFR  X,D          ; Met le résultat dans D
-        STA  <HEIGHT      ; Sauvegarde l'octet haut de X (comme hauteur)
+        TFR  X,D        ; Met le résultat dans D
+        STA  <HEIGHT    ; Sauvegarde la hauteur
 
 SAVE_HEIGHT
         STA  <HEIGHT
-        
-        ; DEBUG - Si toujours 0, affiche pixel rouge
-        TST  <HEIGHT
-        BNE  SKIP_DEBUG
-        LDX  #VIDEO_MEM
-        LDA  #$40        ; Rouge en position haute
-        STA  ,X
-SKIP_DEBUG
         RTS
         
 ; Le code principal

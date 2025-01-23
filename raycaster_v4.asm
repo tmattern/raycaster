@@ -281,38 +281,24 @@ HITVERT
 CALC_DIST    
         STD  <DIST         ; Sauvegarde la distance (8.8)
 
-        ; Debug - Affiche DIST sur les 2 premiers pixels
-        PSHS D            ; Sauvegarde DIST
-        LDX  #VIDEO_MEM
-        TFR  A,B          ; Partie entière dans B
-        ORB  #$20         ; Vert
-        STB  ,X           ; Affiche partie entière en vert
-        PULS A,B
-        ORB  #$40         ; Rouge
-        STB  1,X          ; Affiche partie fractionnaire en rouge
-        
-        ; Si DIST = 0, force hauteur max
+        ; Si DIST = 0, forcer une petite distance non nulle
         BNE  DIST_OK
-        LDA  #200
-        BRA  SAVE_HEIGHT
-
+        LDD  #$0100    ; Force distance minimale de 1.0
+        STD  <DIST        
+        
 DIST_OK
         ; Nouvelle méthode de calcul de la hauteur
-        ; On ne prend que la partie entière de DIST pour commencer
-        LDA  <DIST        ; Partie entière de la distance
-        BEQ  FORCE_MAX    ; Si 0, force maximum
+        LDA  <DIST     ; Partie entière de la distance
+        BEQ  FORCE_MAX  ; Ne devrait plus arriver
         
-        ; Calcul HEIGHT = 100 / partie_entiere(DIST)
-        LDB  #100         ; Hauteur de base
-        ; Division 8 bits de B par A, résultat dans B
-        PSHS A            ; Sauvegarde diviseur
-        LDA  #0          ; Initialise quotient
-        ; Boucle de division 8 bits
+        ; Division modifiée pour éviter division par 0
+        LDB  #100      ; Hauteur de base
 DIV_LOOP
-        SUBB ,S          ; Soustrait diviseur
-        BCS  DIV_END     ; Si carry, fin de division
-        INCA             ; Incrémente quotient
-        BRA  DIV_LOOP
+        SUBA #1        ; Soustrait 1 du diviseur
+        BEQ  DIV_END   ; Si diviseur = 0, fin
+        SUBB #1        ; Décrémente résultat
+        BNE  DIV_LOOP  ; Continue si pas 0
+
 DIV_END
         PULS B           ; Nettoie la pile
         

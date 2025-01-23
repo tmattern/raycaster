@@ -279,46 +279,56 @@ HITVERT
         STA  <SIDE
 
 CALC_DIST    
-        STD  <DIST      ; Sauvegarde la distance (en 8.8)
+        STD  <DIST         ; Sauvegarde la distance (8.8)
 
-        ; Si distance = 0, force hauteur max
+        ; Debug - Affiche DIST sur les 2 premiers pixels
+        PSHS D            ; Sauvegarde DIST
+        LDX  #VIDEO_MEM
+        TFR  A,B          ; Partie entière dans B
+        ORB  #$20         ; Vert
+        STB  ,X           ; Affiche partie entière en vert
+        PULS A,B
+        ORB  #$40         ; Rouge
+        STB  1,X          ; Affiche partie fractionnaire en rouge
+        
+        ; Si DIST = 0, force hauteur max
         BNE  DIST_OK
         LDA  #200
         BRA  SAVE_HEIGHT
 
 DIST_OK
-        ; Debug: affiche les composants de la distance
-        PSHS A,B        ; Sauvegarde distance
-        LDX  #VIDEO_MEM
-        ; Affiche partie entière (A) en rouge
-        ORA  #$40       ; Force en rouge
-        STA  ,X
-        ; Affiche partie fractionnaire (B) en vert
-        PULS A,B        ; Récupère distance
-        ORB  #$20       ; Force en vert
-        STB  1,X
+        ; Nouvelle méthode de calcul de la hauteur
+        ; On ne prend que la partie entière de DIST pour commencer
+        LDA  <DIST        ; Partie entière de la distance
+        BEQ  FORCE_MAX    ; Si 0, force maximum
         
-        ; Division de (100 * 256) par DIST
-        ; DIST est en 8.8, donc on divise 25600 par DIST
-        LDD  #25600     ; 100 * 256
-        LDX  #0         ; Compteur (sera la hauteur)
-        
+        ; Calcul HEIGHT = 100 / partie_entiere(DIST)
+        LDB  #100         ; Hauteur de base
+        ; Division 8 bits de B par A, résultat dans B
+        PSHS A            ; Sauvegarde diviseur
+        LDA  #0          ; Initialise quotient
+        ; Boucle de division 8 bits
 DIV_LOOP
-        CMPD <DIST      ; Compare avec distance
-        BLO  DIV_END    ; Si plus petit, fin
-        SUBD <DIST      ; Soustrait la distance
-        LEAX 1,X        ; Incrémente hauteur
-        CPX  #200       ; Check hauteur max
-        BHS  FORCE_MAX
+        SUBB ,S          ; Soustrait diviseur
+        BCS  DIV_END     ; Si carry, fin de division
+        INCA             ; Incrémente quotient
         BRA  DIV_LOOP
+DIV_END
+        PULS B           ; Nettoie la pile
         
+        ; A contient maintenant la hauteur
+        CMPA #200        ; Compare avec hauteur max
+        BHS  FORCE_MAX
+        
+        ; Debug - Affiche hauteur calculée
+        PSHS A
+        ORA  #$10        ; Bleu
+        STA  2,X         ; Affiche hauteur en bleu
+        PULS A
+        BRA  SAVE_HEIGHT
+
 FORCE_MAX
         LDA  #200
-        BRA  SAVE_HEIGHT
-        
-DIV_END
-        TFR  X,D        ; Met le résultat dans D
-        STA  <HEIGHT    ; Sauvegarde la hauteur
 
 SAVE_HEIGHT
         STA  <HEIGHT
@@ -634,24 +644,15 @@ VIDEO_INIT
         STA  $E7DD       ; Registre systeme 2
                 
         ; Initialisation de la palette
-        CLR  $E7DB      ; Désactive la palette
-
-        ; Boucle d'initialisation des 16 couleurs
-        LDB  #$0F       ; Commence par la couleur 15
+        ; Écrit les 32 octets de la palette
+        CLR  $E7DB      ; Position 0
+        LDX  #PALETTE   ; Source
+        LDB  #32        ; 32 octets à copier
 VI_PAL_LOOP
-        STB  $E7DA      ; Sélectionne l'index de couleur (0-15)
-        LDX  #PALETTE   ; Charge l'adresse de base de la palette
-        LDA  B,X        ; Charge RG depuis PALETTE+B
-        STA  $E7DB      ; Écrit RG
-        LDX  #PALETTE+16 ; Charge l'adresse de la partie bleue
-        LDA  B,X        ; Charge B depuis PALETTE+16+B
-        STA  $E7DB      ; Écrit B
-        DECB            ; Couleur suivante
-        BPL  VI_PAL_LOOP ; Continue jusqu'à ce que B devienne négatif
-
-        ; Active la palette
-        LDA  #$39
-        STA  $E7DB
+        LDA  ,X+        ; Charge octet
+        STA  $E7DA      ; Écrit dans la palette
+        DECB
+        BNE  VI_PAL_LOOP
 
         ; Nettoyage de l'écran - Version corrigée
         ; RAMA ($0000-$1FFF) - Contient les pixels pairs
@@ -676,42 +677,25 @@ VI_CLEAR_RAMB
 ; Palette 16 couleurs pour le raycasting
         ALIGN 256
 PALETTE
-        ; Format: 16 octets RG suivis de 16 octets B
-        ; RG - Bits 7-4: Rouge, Bits 3-0: Vert
-        FCB  $00        ; 0: Noir
-        FCB  $44        ; 1: Rouge foncé pour murs lointains
-        FCB  $66        ; 2: Rouge moyen
-        FCB  $88        ; 3: Rouge vif pour murs proches
-        FCB  $AA        ; 4: Rouge très vif
-        FCB  $03        ; 5: Vert foncé pour sol lointain
-        FCB  $05        ; 6: Vert moyen pour sol
-        FCB  $07        ; 7: Vert clair pour sol proche
-        FCB  $22        ; 8: Gris très foncé pour plafond
-        FCB  $44        ; 9: Gris foncé pour plafond
-        FCB  $66        ; 10: Gris moyen pour plafond
-        FCB  $88        ; 11: Gris clair pour plafond
-        FCB  $FF        ; 12: Blanc
-        FCB  $F0        ; 13: Rouge clair (UI)
-        FCB  $0F        ; 14: Vert clair (UI)
-        FCB  $FF        ; 15: Blanc brillant (UI)
-
-        ; Composante Bleue
-        FCB  $0         ; 0: Noir
-        FCB  $0         ; 1: Pas de bleu (mur lointain)
-        FCB  $0         ; 2: Pas de bleu
-        FCB  $0         ; 3: Pas de bleu
-        FCB  $0         ; 4: Pas de bleu (mur proche)
-        FCB  $0         ; 5: Sol lointain
-        FCB  $0         ; 6: Sol
-        FCB  $0         ; 7: Sol proche
-        FCB  $2         ; 8: Plafond très loin
-        FCB  $4         ; 9: Plafond loin
-        FCB  $6         ; 10: Plafond moyen
-        FCB  $8         ; 11: Plafond proche
-        FCB  $F         ; 12: Blanc
-        FCB  $0         ; 13: UI rouge
-        FCB  $0         ; 14: UI vert
-        FCB  $F         ; 15: UI blanc
+        ; Format: 16 mots de 2 octets (GR,B)
+        ; Premier octet - GR: Bits 7-4: Vert, Bits 3-0: Rouge
+        ; Second octet - B: Bits 3-0: Bleu (bits 7-4 ignorés)
+        FDB  $0000      ; 0: Noir
+        FDB  $0400      ; 1: Rouge foncé pour murs lointains (V=0,R=4)
+        FDB  $0600      ; 2: Rouge moyen (V=0,R=6)
+        FDB  $0800      ; 3: Rouge vif pour murs proches (V=0,R=8)
+        FDB  $0A00      ; 4: Rouge très vif (V=0,R=A)
+        FDB  $3000      ; 5: Vert foncé pour sol lointain (V=3,R=0)
+        FDB  $5000      ; 6: Vert moyen pour sol (V=5,R=0)
+        FDB  $7000      ; 7: Vert clair pour sol proche (V=7,R=0)
+        FDB  $2202      ; 8: Gris très foncé pour plafond (V=2,R=2)
+        FDB  $4404      ; 9: Gris foncé pour plafond (V=4,R=4)
+        FDB  $6606      ; 10: Gris moyen pour plafond (V=6,R=6)
+        FDB  $8808      ; 11: Gris clair pour plafond (V=8,R=8)
+        FDB  $FF0F      ; 12: Blanc (V=F,R=F)
+        FDB  $0F00      ; 13: Rouge clair UI (V=0,R=F)
+        FDB  $F000      ; 14: Vert clair UI (V=F,R=0)
+        FDB  $FF0F      ; 15: Blanc brillant UI (V=F,R=F)
 
 ; Table des offsets écran
         ALIGN 256

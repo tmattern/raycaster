@@ -70,7 +70,7 @@ SIDEX       RMB  2      ; Distance côté X (8.8)
 SIDEY       RMB  2      ; Distance côté Y (8.8)
 DELTAX      RMB  2      ; Delta X (8.8)
 DELTAY      RMB  2      ; Delta Y (8.8)
-SIDE        RMB  1      ; Côté touché (0=X, 1=Y)
+WALL_COLOR  RMB  1      ; Couleur du mur (3=horizontal, 4=vertical)
 BLOCKS      RMB  1      ; Compteur blocs
 COL_PTR     RMB  2      ; Pointeur colonne courante
 TEMP        RMB  1      ; Variable temporaire
@@ -232,9 +232,10 @@ DDA_LOOP
         CMPD <SIDEY     ; Compare les distances en format 8.8
         BHS  DO_STEPY   ; Si SIDEX >= SIDEY, on avance en Y
 
-DO_STEPX                ; Cas par défaut : on avance en X
+DO_STEPX                ; Cas par défaut : on avance en X 
         LDX  <MAP_PTR
-        LEAX STEPX,X    ; Avance dans la direction X
+        LDB  <STEPX     ; Charge STEPX dans B
+        LEAX B,X        ; Avance dans la direction X en utilisant B
         STX  <MAP_PTR
         LDA  ,X         ; Lit la case
         BNE  HITHORZ    ; Si mur, collision horizontale
@@ -245,7 +246,7 @@ DO_STEPX                ; Cas par défaut : on avance en X
 
 DO_STEPY   
         LDX  <MAP_PTR
-        LDA  <STEPY
+        LDB  <STEPY     ; Charge STEPY dans B
         BPL  UP
 DOWN    
         LEAX -MAP_W,X
@@ -263,31 +264,25 @@ SAVEY2
 
 HITHORZ
         LDD  <SIDEX     ; Distance en format 8.8
-        CLR  <SIDE
-        BRA  CALC_DIST
+        STD  <DIST      ; Sauvegarde d'abord la distance
+        LDA  #3         ; Couleur 3 (rouge) pour murs horizontaux
+        STA  <WALL_COLOR
+        BRA  CONT_DIST
+
 HITVERT
         LDD  <SIDEY     ; Distance en format 8.8
-        LDA  #1
-        STA  <SIDE
+        STD  <DIST      ; Sauvegarde d'abord la distance
+        LDA  #4         ; Couleur 4 (rouge clair) pour murs verticaux
+        STA  <WALL_COLOR
 
-CALC_DIST    
-        STD  <DIST      ; Sauvegarde la distance (en 8.8)
-
+CONT_DIST               ; Point de continuation commun
         ; Si distance = 0 (teste les deux octets)
-        TFR  D,X        ; Copie la distance dans X pour test
-        LEAX 0,X        ; Met à jour les flags sur les 16 bits
-        BNE  DIST_OK    ; Si X!=0, calcul normal
-        LDA  #200       ; Sinon force hauteur max
-        BRA  SAVE_HEIGHT
-
-DIST_OK
-        ; Si DIST = 0, force à 1
-        LDD  <DIST
+        LDD  <DIST      ; Recharge la distance pour test
         CMPD #0
-        BNE  DIST_DIV
-        LDD  #1
-
-DIST_DIV
+        BNE  DIST_OK    ; Si D!=0, calcul normal
+        BRA  SET_MAX_HEIGHT
+        
+DIST_OK
         ; Sauvegarde DIST
         PSHS D           ; Sauvegarde diviseur
         
@@ -297,6 +292,8 @@ DIST_DIV
         ; Vérifie hauteur max
         CMPA #200
         BLS  SAVE_HEIGHT
+
+SET_MAX_HEIGHT
         LDA  #200
 
 SAVE_HEIGHT
@@ -305,37 +302,22 @@ SAVE_HEIGHT
         RTS
 
 ; Division 16 bits non signée
-; Entrée : D = dividende (51200), pile = diviseur (DIST)
+; Entrée : D = dividende (ex: 200), pile = diviseur (ex: 4)
 ; Sortie : A = quotient (limité à 255)
 DIV_16B
-        PSHS D          ; Sauvegarde dividende
-        CLRA            ; Initialise quotient à 0
-        PSHS A
-        
+        PSHS D          ; Sauvegarde le dividende
+        CLRA            ; Initialise le quotient à 0
 DIV_LOOP
-        ; Compare dividende avec diviseur
-        LDD  1,S        ; Charge dividende
-        SUBD 3,S        ; Soustrait diviseur
-        BLO  DIV_END    ; Si < diviseur, fin
-        
-        ; Si >= diviseur, soustrait et incrémente quotient
-        STD  1,S        ; Sauvegarde reste
-        LDA  0,S        ; Charge quotient
-        INCA            ; Incrémente quotient
-        BEQ  DIV_MAX    ; Si quotient devient 0, on a dépassé 255
-        STA  0,S        ; Sauvegarde quotient
-        BRA  DIV_LOOP
-
-DIV_MAX
-        LDA  #255       ; Force quotient maximum
-        BRA  DIV_CLEAN
-        
+        LDD  0,S        ; Charge dividende
+        CMPD 4,S        ; Compare avec diviseur (offset corrigé!)
+        BLO  DIV_END    ; Si < diviseur, on a fini
+        SUBD 4,S        ; Soustrait le diviseur (offset corrigé!)
+        STD  0,S        ; Sauvegarde le reste
+        INCA            ; Incrémente le quotient
+        BRA  DIV_LOOP   ; Continue
 DIV_END
-        LDA  0,S        ; Charge quotient
-
-DIV_CLEAN
-        LEAS 3,S        ; Nettoie la pile (dividende + quotient)
-        RTS
+        LEAS 2,S        ; Nettoie la pile (retire dividende)
+        RTS             ; Retourne avec A = quotient
 
 ; Division 8 bits : 256/valeur
 ; Entrée : B = diviseur 8 bits (la valeur de sin ou cos)

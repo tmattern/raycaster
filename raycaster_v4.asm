@@ -162,29 +162,50 @@ COL     ; Pour chaque colonne de la fenêtre de rendu
         RTS
 
 CALC_RAY
-        LDA  <CURR_COL
-        SUBA #CENTER_X  ; Centre de la fenêtre
-        LSRA           ; /2 pour FOV
-        ADDA <ANGLE    ; + angle joueur
-        STA  <TEMP     ; Sauvegarde angle
+        LDA  <CURR_COL    ; A = x (0-127)
+        SUBA #CENTER_X    ; Centre x (x - 64)
+        LSRA             ; /2 pour FOV
+        ADDA <ANGLE      ; + angle joueur
+        STA  <TEMP       ; Sauvegarde angle
+
+        ; DELTAY = sin(angle)
+        LDX  #SINTAB     
+        LDA  A,X         ; A = sin(angle) 
+        STA  <DELTAY     ; Sauvegarde pour tester le signe après
+        BMI  NEG_Y
+        LDA  #1          ; STEPY = 1 si sin positif
+        BRA  SAVE_STEPY
+NEG_Y   LDA  #-1         ; STEPY = -1 si sin négatif
+SAVE_STEPY
+        STA  <STEPY
         
-        ; DELTAY = 256/sin(angle)
-        LDX  #SINTAB
-        LDB  A,X       ; B = sin(angle) (-128 à 127)
-        CLRA           ; A = 0 (juste pour être propre)
-        JSR  DIV8      ; Divise 256 par B -> résultat dans A:B
-        STD  <DELTAY   ; Stocke le résultat en format 8.8
-        
-        ; DELTAX = 256/cos(angle)
+        LDA  <DELTAY
+        BPL  POS_Y
+        NEGA            ; Prend valeur absolue de sin pour DELTAY
+POS_Y   STA  <DELTAY
+        CLRB            ; B = 0 = partie fractionnaire
+        STB  <DELTAY+1
+
+        ; DELTAX = cos(angle) 
         LDX  #COSTAB
-        LDA  <TEMP     ; Récupère angle
-        LDB  A,X       ; B = cos(angle) (-128 à 127)
-        CLRA           ; A = 0
-        JSR  DIV8      ; Divise 256 par B
-        STD  <DELTAX   ; Stocke le résultat en format 8.8
+        LDA  <TEMP      ; Récupère angle
+        LDA  A,X        ; A = cos(angle)
+        STA  <DELTAX    ; Sauvegarde pour tester le signe après
+        BMI  NEG_X
+        LDA  #1         ; STEPX = 1 si cos positif
+        BRA  SAVE_STEPX
+NEG_X   LDA  #-1        ; STEPX = -1 si cos négatif
+SAVE_STEPX
+        STA  <STEPX
+
+        LDA  <DELTAX
+        BPL  POS_X
+        NEGA            ; Prend valeur absolue de cos pour DELTAX
+POS_X   STA  <DELTAX
+        CLRB            ; B = 0 = partie fractionnaire
+        STB  <DELTAX+1
         RTS
 
-; Raycasting DDA optimisé
 RAYCAST
         ; Init pointeur map
         LDA  <MAPY
@@ -195,49 +216,20 @@ RAYCAST
         ABX
         STX  <MAP_PTR
 
-        ; Init deltas
-        ; Pour DELTAX/DELTAY:
-        ; - Octet haut (A) = partie entière (valeur de sin/cos)
-        ; - Octet bas (B) = partie fractionnaire (0 dans notre cas)
-        
-        LDA  <DELTAX
-        BPL  POSX
-        LDA  #-1        ; STEPX = -1
-        STA  <STEPX
-        ; Négation 16 bits pour le delta
-        LDD  <DELTAX    ; D = partie_entiere.partie_fract
-        COMA            ; Inverse les bits de A
-        COMB            ; Inverse les bits de B
-        ADDD #1        ; +1 pour compléter la négation
-        BRA  SAVEX
-POSX    
-        LDA  #1         ; STEPX = 1
-        STA  <STEPX
-        LDD  <DELTAX    ; Charge tel quel
-SAVEX   
+        ; Init distances côtés
+        ; SIDEX = 256/abs(DELTAX)
+        LDB  <DELTAX    ; B = abs(DELTAX) car déjà positif
+        JSR  DIV8       ; D = 256/B
         STD  <SIDEX     ; Sauvegarde en format 8.8
-
-        LDA  <DELTAY
-        BPL  POSY
-        LDA  #-1        ; STEPY = -1
-        STA  <STEPY
-        ; Négation 16 bits pour le delta
-        LDD  <DELTAY    ; D = partie_entiere.partie_fract
-        COMA            ; Inverse les bits de A
-        COMB            ; Inverse les bits de B
-        ADDD #1        ; +1 pour compléter la négation
-        BRA  SAVEY
-POSY    
-        LDA  #1         ; STEPY = 1
-        STA  <STEPY
-        LDD  <DELTAY    ; Charge tel quel
-SAVEY   
+        
+        ; SIDEY = 256/abs(DELTAY)
+        LDB  <DELTAY    ; B = abs(DELTAY) car déjà positif
+        JSR  DIV8       ; D = 256/B
         STD  <SIDEY     ; Sauvegarde en format 8.8
 
-; Boucle DDA optimisée
 DDA_LOOP    
         LDD  <SIDEX
-        CMPD <SIDEY    ; Compare les distances en format 8.8
+        CMPD <SIDEY     ; Compare les distances en format 8.8
         BHS  DO_STEPY   ; Si SIDEX >= SIDEY, on avance en Y
 
 DO_STEPX                ; Cas par défaut : on avance en X
@@ -247,7 +239,7 @@ DO_STEPX                ; Cas par défaut : on avance en X
         LDA  ,X         ; Lit la case
         BNE  HITHORZ    ; Si mur, collision horizontale
         LDD  <SIDEX
-        ADDD <DELTAX    ; Ajoute DELTAX (en 8.8)
+        ADDD <DELTAX    ; Ajoute DELTAX (maintenant toujours positif)
         STD  <SIDEX
         BRA  DDA_LOOP
 
@@ -265,7 +257,7 @@ SAVEY2
         LDA  ,X         ; Lit la case
         BNE  HITVERT    ; Si mur, collision verticale
         LDD  <SIDEY
-        ADDD <DELTAY    ; Ajoute DELTAY (en 8.8)
+        ADDD <DELTAY    ; Ajoute DELTAY (maintenant toujours positif)
         STD  <SIDEY
         BRA  DDA_LOOP
 
@@ -360,8 +352,8 @@ DIV8_START
         LDX  #256      ; X = dividende = 256
 DIV8_LOOP
         LEAX B,X       ; X = X - diviseur (car B est négatif)
-        CMPX #256
-        BHI  DIV8_END  ; Si X >= 256, on a fini
+        CMPX #0
+        BLE  DIV8_END  ; Si X >= 256, on a fini
         INCA           ; Incrémente quotient dans A
         BRA  DIV8_LOOP
 

@@ -346,7 +346,7 @@ DIV_CLEAN
         RTS
 
 ; Division 8 bits : 256/valeur
-; Entrée : D = diviseur 8 bits (la valeur de sin ou cos dans B)
+; Entrée : B = diviseur 8 bits (la valeur de sin ou cos)
 ; Sortie : D = résultat en format 8.8
 DIV8    
         TSTB           ; Test si diviseur = 0
@@ -355,17 +355,18 @@ DIV8
         RTS
 
 DIV8_START
-        PSHS B         ; Sauvegarde diviseur
-        LDD  #256      ; Dividende = 256
+        CLRA           ; Initialise quotient = 0
+        NEGB           ; Négative le diviseur une fois pour toutes
+        LDX  #256      ; X = dividende = 256
 DIV8_LOOP
-        SUBB ,S        ; Soustrait le diviseur
-        BCS  DIV8_END  ; Si Carry, on a dépassé
-        INCA           ; Incrémente le quotient
+        LEAX B,X       ; X = X - diviseur (car B est négatif)
+        CMPX #256
+        BHI  DIV8_END  ; Si X >= 256, on a fini
+        INCA           ; Incrémente quotient dans A
         BRA  DIV8_LOOP
 
 DIV8_END
         CLRB           ; Partie fractionnaire = 0
-        LEAS 1,S       ; Nettoie la pile
         RTS
 
 DRAW_COL

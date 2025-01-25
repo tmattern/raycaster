@@ -218,14 +218,20 @@ RAYCAST
 
         ; Init distances côtés
         ; SIDEX = 256/abs(DELTAX)
-        LDB  <DELTAX    ; B = abs(DELTAX) car déjà positif
-        JSR  DIV8       ; D = 256/B
-        STD  <SIDEX     ; Sauvegarde en format 8.8
+        LDB  <DELTAX       ; B = abs(DELTAX) car déjà positif
+        CLRA               ; A = 0 pour former le diviseur 16 bits
+        TFR  D,X          ; X = diviseur
+        LDD  #256         ; D = dividende
+        JSR  DIV16        ; Effectue la division
+        STD  <SIDEX       ; Sauvegarde le résultat directement
         
         ; SIDEY = 256/abs(DELTAY)
-        LDB  <DELTAY    ; B = abs(DELTAY) car déjà positif
-        JSR  DIV8       ; D = 256/B
-        STD  <SIDEY     ; Sauvegarde en format 8.8
+        LDB  <DELTAY      ; B = abs(DELTAY) car déjà positif
+        CLRA              ; A = 0 pour former le diviseur 16 bits
+        TFR  D,X          ; X = diviseur
+        LDD  #256         ; D = dividende
+        JSR  DIV16        ; Effectue la division
+        STD  <SIDEY       ; Sauvegarde le résultat directement
 
 DDA_LOOP    
         LDD  <SIDEX
@@ -283,14 +289,13 @@ CONT_DIST               ; Point de continuation commun
         BRA  SET_MAX_HEIGHT
         
 DIST_OK
-        ; Sauvegarde DIST
-        PSHS D           ; Sauvegarde diviseur
-        
-        LDD  #51200      ; 200 * 256
-        JSR  DIV_16B
+        TFR  D,X         ; X = diviseur (DIST)
+        LDD  #51200      ; D = dividende (200 * 256)
+        JSR  DIV16       ; Division 16 bits
+        TFR  A,B         ; Garde seulement la partie haute du résultat
         
         ; Vérifie hauteur max
-        CMPA #200
+        CMPB #200
         BLS  SAVE_HEIGHT
 
 SET_MAX_HEIGHT
@@ -299,48 +304,6 @@ SET_MAX_HEIGHT
 SAVE_HEIGHT
         LEAS 2,S        ; Nettoie la pile
         STA  <HEIGHT
-        RTS
-
-; Division 16 bits non signée
-; Entrée : D = dividende (ex: 200), pile = diviseur (ex: 4)
-; Sortie : A = quotient (limité à 255)
-DIV_16B
-        PSHS D          ; Sauvegarde le dividende
-        CLRA            ; Initialise le quotient à 0
-DIV_LOOP
-        LDD  0,S        ; Charge dividende
-        CMPD 4,S        ; Compare avec diviseur (offset corrigé!)
-        BLO  DIV_END    ; Si < diviseur, on a fini
-        SUBD 4,S        ; Soustrait le diviseur (offset corrigé!)
-        STD  0,S        ; Sauvegarde le reste
-        INCA            ; Incrémente le quotient
-        BRA  DIV_LOOP   ; Continue
-DIV_END
-        LEAS 2,S        ; Nettoie la pile (retire dividende)
-        RTS             ; Retourne avec A = quotient
-
-; Division 8 bits : 256/valeur
-; Entrée : B = diviseur 8 bits (la valeur de sin ou cos)
-; Sortie : D = résultat en format 8.8
-DIV8    
-        TSTB           ; Test si diviseur = 0
-        BNE  DIV8_START
-        LDD  #$7FFF    ; Si diviseur = 0, retourne valeur max
-        RTS
-
-DIV8_START
-        CLRA           ; Initialise quotient = 0
-        NEGB           ; Négative le diviseur une fois pour toutes
-        LDX  #256      ; X = dividende = 256
-DIV8_LOOP
-        LEAX B,X       ; X = X - diviseur (car B est négatif)
-        CMPX #0
-        BLE  DIV8_END  ; Si X >= 256, on a fini
-        INCA           ; Incrémente quotient dans A
-        BRA  DIV8_LOOP
-
-DIV8_END
-        CLRB           ; Partie fractionnaire = 0
         RTS
 
 DRAW_COL
@@ -683,6 +646,46 @@ VI_CLEAR_RAMB
         BLO  VI_CLEAR_RAMB
         
         RTS
+
+
+*** X=diviseur - D=dividende ***
+DIV16       PSHS      D,X
+            CLRA
+            CLRB
+            LDX        #17
+            BRA       DIV161
+DIV160      ROLB
+            ROLA
+            SUBD     2,S
+            BCC        DIV161
+            ADDD    2,S
+DIV161      ROL       1,S
+            ROL      ,S
+            LEAX     -1,X
+            BNE       DIV160
+            STD       2,S
+            PULS     D,X
+            COMA
+            COMB
+            RTS
+
+****** Division 8 bits ******
+*** D=quotient - X=reste ***
+DIV8        PSHS    A,B
+            LDD     #$0800
+DIV81       ROL     ,S
+            ROLB
+            SUBB    1,S
+            BCC     DIV82
+            ADDB    1,S
+DIV82       DECA
+            BNE     DIV81
+            LDA     ,S++
+            ROLA
+            COMA
+            RTS
+****** Res:A    Rest:B ****** 
+
 
 ; --------------- DONNÉES ---------------
 ; Palette 16 couleurs pour le raycasting

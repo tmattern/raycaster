@@ -84,14 +84,14 @@ GLOBAL pos_x, pos_y, dir_x, dir_y, plane_x, plane_y, map_x, map_y, angle
 GLOBAL dir_x0, dir_y0, plane_x0, plane_y0
 DIM pos_x AS WORD = 18 * 256 + 63
 DIM pos_y AS WORD = 9 * 256 + 63
-DIM dir_x0 AS INT = -256
+DIM dir_x0 AS INT = -128
 DIM dir_y0 AS INT = 0
-DIM dir_x AS INT = -256
+DIM dir_x AS INT = -128
 DIM dir_y AS INT = 0
 DIM plane_x0 AS INT = 0
-DIM plane_y0 AS INT = -128
+DIM plane_y0 AS INT = -63
 DIM plane_x AS INT = 0
-DIM plane_y AS INT = -128
+DIM plane_y AS INT = -63
 DIM map_x AS BYTE
 DIM map_y AS BYTE
 DIM map_z AS WORD
@@ -138,6 +138,7 @@ END PROCEDURE
 PROCEDURE raycaster
 	
 	DIM ray_dir_x AS INT, ray_dir_y AS INT, delta_dir_x AS INT, delta_dir_y  AS INT
+	DIM delta_dir_x_h AS SIGNED BYTE, delta_dir_y_h AS SIGNED BYTE
 	DIM ray_dir_x0 AS INT, ray_dir_y0 AS INT
 	DIM plane_x_step AS INT, plane_y_step AS INT
 	DIM delta_dist_x AS WORD
@@ -175,13 +176,15 @@ PROCEDURE raycaster
 	delta_dir_y = 0
 	ray_dir_x0 = dir_x - plane_x
 	ray_dir_y0 = dir_y - plane_y
-	plane_x_step = plane_x
-	plane_y_step = plane_y
+	plane_x_step = plane_x ** 4
+	plane_y_step = plane_y ** 4
 	
 	REM x - coordinate in camera space
 	FOR camera_x=0 TO 127
-		ray_dir_x = ray_dir_x0 + (delta_dir_x \ 64)
-		ray_dir_y = ray_dir_y0 + (delta_dir_y \ 64)
+	    delta_dir_x_h = PEEK(VARPTR(delta_dir_x))
+	    delta_dir_y_h = PEEK(VARPTR(delta_dir_y))
+		ray_dir_x = ray_dir_x0 + delta_dir_x_h
+		ray_dir_y = ray_dir_y0 + delta_dir_y_h
 
 		REM length of ray from current position to next x or y-side
 		v1 = pos_x
@@ -193,16 +196,6 @@ PROCEDURE raycaster
 		    v1 = 255 - v1
 			delta_dist_x = table_div_4096(ray_dir_x)
 		ENDIF
-       	REM IF delta_dist_x >= $0100 THEN
-		REM    temp_int = delta_dist_x \ 16
-		REM    v2 = temp_int
-		REM    side_dist_x = v1 * v2
-		REM    side_dist_x = side_dist_x \ 16
-   		REM ELSE
-		REM    v2 = delta_dist_x
-		REM    side_dist_x = v1 * v2
-		REM    side_dist_x = side_dist_x \ 256
-	   	REM ENDIF
 	   	side_dist_x = (delta_dist_x * v1) \ 256
 
 
@@ -217,16 +210,6 @@ PROCEDURE raycaster
 	        v1 = 255 - v1
 	    	delta_dist_y = table_div_4096(ray_dir_y)
 		ENDIF
-       	REM IF delta_dist_y >= $0100 THEN
-		REM    temp_int = delta_dist_y \ 16
-		REM    v2 = temp_int
-		REM    side_dist_y = v1 * v2
-		REM    side_dist_y = side_dist_y \ 16
-   		REM ELSE
-		REM    v2 = delta_dist_y
-		REM    side_dist_y = v1 * v2
-		REM    side_dist_y = side_dist_y \ 256
-	   	REM ENDIF
 	   	side_dist_y = (delta_dist_y * v1) \ 256
 
 	    REM perform DDA

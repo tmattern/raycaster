@@ -22,7 +22,7 @@ GLOBAL CONST map_width = 32
 GLOBAL CONST map_height = 24
 
 GLOBAL CONST screen_width = 128
-GLOBAL CONST screen_height = 200
+GLOBAL CONST screen_height = 152
 
 GLOBAL CONST move_speed = 128
 GLOBAL CONST rot_speed = 10
@@ -214,31 +214,34 @@ PROCEDURE raycaster
 
 	    REM perform DDA
 	    map_pointer = map_pointer_0
-	    WHILE PEEK(map_pointer) = 0
+	    WHILE TRUE
 	    	REM jump to next map square, either in x-direction, or in y-direction
 	    	IF side_dist_x < side_dist_y THEN
-	        	ADD side_dist_x, delta_dist_x
 	        	ADD map_pointer, step_x
-	    	    side=0				
+	    		map_item = PEEK(map_pointer)
+	    	    IF map_item <> 0 THEN
+				    REM Calculate distance projected on camera direction (Euclidean distance would give fisheye effect)
+			    	perp_wall_dist = side_dist_x
+		    	    side=0
+	    	    	EXIT
+				ENDIF
+	        	ADD side_dist_x, delta_dist_x
 	        ELSE
-	            ADD side_dist_y, delta_dist_y
 	        	ADD map_pointer, step_y
-	            side=1
+	    		map_item = PEEK(map_pointer)
+	    	    IF map_item <> 0 THEN
+				    REM Calculate distance projected on camera direction (Euclidean distance would give fisheye effect)
+			    	perp_wall_dist = side_dist_y
+		    	    side=1
+	    	    	EXIT
+				ENDIF
+	            ADD side_dist_y, delta_dist_y
 	        ENDIF
 	        REM PLOT (map_pointer-VARPTR(world_map)) MOD 32,(map_pointer-VARPTR(world_map)) \ 16, 1
-	    WEND
-
-	
-	    REM Calculate distance projected on camera direction (Euclidean distance would give fisheye effect)
-	    IF side = 0 THEN
-	    	perp_wall_dist = side_dist_x - delta_dist_x
-	    ELSE
-	        perp_wall_dist = side_dist_y - delta_dist_y
-	    ENDIF
+	    WEND	
 
 	    REM choose wall color
 	    REM ColorRGB color;
-	    map_item = PEEK(map_pointer)
 	    color = (map_item ** 2) + side
 		    
 	    line_height_array(camera_x) = table_dist(perp_wall_dist)
@@ -272,7 +275,7 @@ PROCEDURE render_view_v2
 	ram_s = 0
 
 	FOR x = 0 TO screen_width-1 STEP 2
-		bitmap_address = $4008 + x \ 4
+		bitmap_address = $4004 + x \ 4
 		
 		IF ram_s = 0 THEN
 			POKE $E7C3, ram_a
@@ -326,86 +329,6 @@ PROCEDURE render_view_v2
 
 END PROCEDURE
 
-PROCEDURE render_view_v3
-	DIM vblast_target AS WORD
-
-	DIM middle, line_height1, line_height2, color1, color2, draw_start1, draw_start2, draw_end1, draw_end2, x, y, ram_a, ram_b AS BYTE
-	DIM sky_height, one_pix_height, two_pix_height AS BYTE
-	DIM segment_sky, segment_floor, segment_one_pix_sky, segment_one_pix_floor, segment_two_pix AS BYTE
-	DIM ram_s AS BYTE
-	DIM color1_hi, color2_hi, sky_hi, floor_hi AS BYTE
-
-	middle = screen_height \ 2
-	sky_hi = BLUE ** 16
-	floor_hi = BROWN ** 16
-	POKE VARPTR(segment_sky), sky_hi + BLUE
-	POKE VARPTR(segment_floor), floor_hi + BROWN
-
-	ram_a = PEEK($E7C3) OR $01
-	ram_b = PEEK($E7C3) AND $FE
-	ram_s = 0
-
-	FOR x = 0 TO screen_width-1 STEP 2
-		POKEW VARPTR(vblast_target), $4008 + x \ 4
-		
-		IF ram_s = 0 THEN
-			POKE $E7C3, ram_a
-			ram_s = 1
-		ELSE
-			POKE $E7C3, ram_b
-			ram_s = 0
-		ENDIF
-		
-		line_height1 = line_height_array(x)
-		color1 = color_array(x) ** 16
-		line_height2 = line_height_array(x+1)
-		color2 = color_array(x+1)
-		
-	    IF line_height1 > line_height2 THEN
-	    	POKE VARPTR(sky_height), middle - line_height1
-			POKE VARPTR(one_pix_height), line_height1 - line_height2
-			POKE VARPTR(two_pix_height), line_height2 ** 2
-			POKE VARPTR(segment_one_pix_sky), color1 + BLUE
-			POKE VARPTR(segment_one_pix_floor), color1 + BROWN
-	    ELSE
-	    	POKE VARPTR(sky_height), middle - line_height2
-			POKE VARPTR(one_pix_height), line_height2 - line_height1
-			POKE VARPTR(two_pix_height), line_height1 ** 2
-			POKE VARPTR(segment_one_pix_sky), sky_hi + color2
-			POKE VARPTR(segment_one_pix_floor), floor_hi + color2
-	    ENDIF
-
-	    segment_two_pix = color1 + color2
-
-		SYS vblast_address WITH REG(X)=PEEKW(VARPTR(vblast_target)), REG(B)=PEEK(VARPTR(sky_height)), REG(A)=PEEK(VARPTR(segment_sky))
-		POKEW VARPTR(vblast_target), PEEKW(VARPTR(vblast_target))+40*PEEK(VARPTR(sky_height))
-		
-		SYS vblast_address WITH REG(X)=PEEKW(VARPTR(vblast_target)), REG(B)=PEEK(VARPTR(one_pix_height)), REG(A)=PEEK(VARPTR(segment_one_pix_sky))
-		POKEW VARPTR(vblast_target), PEEKW(VARPTR(vblast_target))+40*PEEK(VARPTR(one_pix_height))
-		
-		SYS vblast_address WITH REG(X)=PEEKW(VARPTR(vblast_target)), REG(B)=PEEK(VARPTR(two_pix_height)), REG(A)=PEEK(VARPTR(segment_two_pix))
-		POKEW VARPTR(vblast_target), PEEKW(VARPTR(vblast_target))+40*PEEK(VARPTR(two_pix_height))
-		
-		SYS vblast_address WITH REG(X)=PEEKW(VARPTR(vblast_target)), REG(B)=PEEK(VARPTR(one_pix_height)), REG(A)=PEEK(VARPTR(segment_one_pix_floor))
-		POKEW VARPTR(vblast_target), PEEKW(VARPTR(vblast_target))+40*PEEK(VARPTR(one_pix_height))
-		
-		SYS vblast_address WITH REG(X)=PEEKW(VARPTR(vblast_target)), REG(B)=PEEK(VARPTR(sky_height)), REG(A)=PEEK(VARPTR(segment_floor))
-	    
-	NEXT
-
-END PROCEDURE
-
-PROCEDURE render_view_v4
-	DIM vblast_target AS WORD
-
-	POKEW VARPTR(vblast_target), $4008
-	SYS vblast_address WITH REG(X)=VARPTR(line_height_array), _
-	                        REG(Y)=VARPTR(color_array), _
-	                        REG(U)=PEEKW(VARPTR(vblast_target))
-END PROCEDURE
-
-
-
 
 PROCEDURE render_map
 	DIM x AS BYTE,y AS BYTE 
@@ -414,13 +337,13 @@ PROCEDURE render_map
 	ptr = VARPTR(world_map)
 	FOR y = 0 TO map_height-1
 		FOR x = 0 TO map_width-1
-			PLOT x, y**2, PEEK(ptr) ** 2
-			PLOT x, y**2+1, PEEK(ptr) ** 2
+			PLOT x, 152+y**2, PEEK(ptr) ** 2
+			PLOT x, 152+y**2+1, PEEK(ptr) ** 2
 			INC ptr
 		NEXT
 	NEXT
-	PLOT PEEK(VARPTR(pos_x)),PEEK(VARPTR(pos_y))**2, 1
-	PLOT PEEK(VARPTR(pos_x)),PEEK(VARPTR(pos_y))**2+1, 1
+	PLOT PEEK(VARPTR(pos_x)),152+PEEK(VARPTR(pos_y))**2, 1
+	PLOT PEEK(VARPTR(pos_x)),152+PEEK(VARPTR(pos_y))**2+1, 1
 END PROCEDURE
 
 PROCEDURE build_table_dist
@@ -442,7 +365,7 @@ END PROCEDURE
 
 PROCEDURE build_table_div_4096
 	DIM i AS WORD, res AS WORD
-	table_div_4096(0) = 16384
+	table_div_4096(0) = 8192
 	table_div_4096(1) = table_div_4096(0)
 	FOR i = 2 TO max_div_4096-1
 		res = table_div_4096(0)
@@ -464,31 +387,33 @@ PALETTE RGB($00,$00,$00), RGB($44,$44,$44), _
         RGB($22,$FF,$22), RGB($11,$AA,$11), _
         RGB($FF,$FF,$FF), RGB($AA,$AA,$AA)
 
-CONSOLE 0,6,4,23
+CONSOLE 4,20,39,24
 PRINT "Init"
 build_table_dist[]
 build_table_div_4096[]
 CLS
 render_map[]
 
+LOCATE 0,0
+PRINT "c:"
+PRINT "r:"
+
 BEGIN GAMELOOP
-	PRINT "CALC"
-	DIM t
-	t = TIMER
-	FOR i = 1 TO 1
+	DIM t0,t1,t2,i
+	t0 = TIMER
+	FOR i = 0 TO 100
 		raycaster[]
 	NEXT
-	t = TIMER - t
-	LOCATE 0,0
-	PRINT t
-	PRINT (100 * 50 / t)
-	
-	DISABLE INTERRUPT
+	t1 = TIMER - t0
 	render_view_v2[]
-	ENABLE INTERRUPT
-	event_handler[]
+	t2 = TIMER - t0 - t1
+
+	LOCATE 2,0
+	PRINT t1
+	LOCATE 2,1
+	PRINT t2
 	WAIT KEY
-	LOCATE 0,0
+	event_handler[]
 END GAMELOOP
 
 PRINT "END"

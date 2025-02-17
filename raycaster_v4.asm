@@ -6,17 +6,24 @@
 ; =============================================
 
 ; Constantes
-VIDEO_MEM   EQU  $0000  ; Adresse mémoire vidéo (RAMA $0000-$1FFF)
-RAMB_BASE   EQU  $2000  ; Adresse RAMB ($2000-$3FFF)
-SCREEN_W    EQU  160    ; Largeur en mode 160x200
-SCREEN_H    EQU  200    ; Hauteur écran
-SCREEN_SIZE EQU  8000   ; 160x200/4 car chaque banque contient la moitié des pixels
-MAP_W       EQU  32     ; Largeur map
-MAP_H       EQU  24     ; Hauteur map
-CENTER_Y    EQU  100    ; Centre vertical écran
-RENDER_W    EQU  128    ; Largeur de la fenêtre de rendu
-RENDER_X    EQU  32     ; Position X du début du rendu (160-128=32)
-CENTER_X    EQU  64     ; Centre horizontal de la fenêtre de rendu (128/2)
+VIDEO_MEM     EQU  $0000     ; Adresse mémoire vidéo (RAMA $0000-$1FFF)
+RAMB_BASE     EQU  $2000     ; Adresse RAMB ($2000-$3FFF)
+SCREEN_W      EQU  160       ; Largeur en mode 160x200
+SCREEN_H      EQU  200       ; Hauteur écran
+SCREEN_SIZE   EQU  8000      ; 160x200/4 car chaque banque contient la moitié des pixels
+MAP_W         EQU  32        ; Largeur map
+MAP_H         EQU  24        ; Hauteur map
+CENTER_Y      EQU  100       ; Centre vertical écran
+RENDER_W      EQU  128       ; Largeur de la fenêtre de rendu
+RENDER_X      EQU  32        ; Position X du début du rendu (160-128=32)
+CENTER_X      EQU  64        ; Centre horizontal de la fenêtre de rendu (128/2)
+RAY_POS_X0    EQU  18*256+63 ; Position initiale joueur X
+RAY_POS_Y0    EQU  9*256+63  ; Position initiale joueur Y
+RAY_DIR_X0    EQU  -128
+RAY_DIR_Y0    EQU  0
+RAY_PLANE_X0  EQU  0
+RAY_PLANE_Y0  EQU  -63
+
 ; Constantes pour la mini-map
 MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
@@ -27,64 +34,70 @@ MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 ; --------------- MAP 32x24 ---------------
         ALIGN 256
 MAP     
-        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 1
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 2
-        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 3
-        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 4
-        FCB  1,0,2,2,2,2,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 5
-        FCB  1,0,0,2,2,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 6
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 7
-        FCB  1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,0,1,1,1  ; Ligne 8
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 9
-        FCB  1,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,5,5,0,0,1  ; Ligne 10
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 11
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 12
-        FCB  1,0,4,4,4,4,0,0,0,0,0,7,0,0,0,0,0,0,0,0,7,0,0,0,0,0,5,5,5,5,0,1  ; Ligne 13
-        FCB  1,0,4,4,4,4,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,5,5,5,5,0,1  ; Ligne 14
-        FCB  1,0,0,4,4,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,5,5,0,0,1  ; Ligne 15
-        FCB  1,0,0,0,0,0,0,1,1,0,0,7,0,0,0,0,0,0,0,0,7,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 16
-        FCB  1,1,1,0,0,1,1,1,1,0,0,7,7,7,0,0,0,0,7,7,7,0,0,1,1,1,1,0,0,1,1,1  ; Ligne 17
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 18
-        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 19
-        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 20
-        FCB  1,0,6,6,6,6,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,3,3,3,3,0,1  ; Ligne 21
-        FCB  1,0,0,6,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,1  ; Ligne 22
-        FCB  1,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1  ; Ligne 23
-        FCB  1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1  ; Ligne 24
+        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,2,1,7,6,5,4,3,2,1,7,6,5,4,3,2,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,1,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,1,6,6,7,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1
+        FCB     1,0,0,1,1,6,5,4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1
+        FCB     1,0,0,1,1,7,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
+        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
+        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,5,5,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
 
 ; --------------- VARIABLES ---------------
         ALIGN 256
 ; Variables page directe (avec DP=$A4)
-MAP_PTR     RMB  2      ; Pointeur map courant
-DIST        RMB  2      ; Distance au mur (8.8)
-HEIGHT      RMB  1      ; Hauteur colonne
-CURR_COL    RMB  1      ; Colonne courante
-MAPX        RMB  1      ; Position map X
-MAPY        RMB  1      ; Position map Y
-PLAYERX     RMB  2      ; Position joueur X (8.8)
-PLAYERY     RMB  2      ; Position joueur Y (8.8)
-ANGLE       RMB  1      ; Angle vue (0-255)
-STEPX       RMB  1      ; Direction X (-1/+1)
-STEPY       RMB  1      ; Direction Y (-1/+1)
-SIDEX       RMB  2      ; Distance côté X (8.8)
-SIDEY       RMB  2      ; Distance côté Y (8.8)
-DELTAX      RMB  2      ; Delta X (8.8)
-DELTAY      RMB  2      ; Delta Y (8.8)
-WALL_COLOR  RMB  1      ; Couleur du mur (3=horizontal, 4=vertical)
-BLOCKS      RMB  1      ; Compteur blocs
-COL_PTR     RMB  2      ; Pointeur colonne courante
-TEMP        RMB  1      ; Variable temporaire
+RAY_pos_x     RMB     2       ; Fixed point 8.8
+RAY_pos_y     RMB     2       ; Fixed point 8.8
+RAY_dir_x     RMB     2       ; Direction vector
+RAY_dir_y     RMB     2
+RAY_plane_x   RMB     2       ; Camera plane
+RAY_plane_y   RMB     2
+RAY_ray_x     RMB     2       ; Current ray direction
+RAY_ray_y     RMB     2
+RAY_ray_x0    RMB     2
+RAY_ray_y0    RMB     2
+RAY_plane_x_step RMB     2
+RAY_plane_y_step RMB     2
+RAY_ddist_x   RMB     2       ; Delta distance
+RAY_ddist_y   RMB     2
+RAY_sdist_x   RMB     2       ; Side distance
+RAY_sdist_y   RMB     2
+RAY_step_x    RMB     1       ; Step values ($FF or $01)
+RAY_step_y    RMB     1       ; Step values ($E0 or $20)
+RAY_cam_x     RMB     1       ; Screen x coordinate
+RAY_side      RMB     1       ; Wall side hit (0=NS, 1=EW)
+RAY_color     RMB     1       ; Current wall color
+RAY_line_h    RMB     1       ; Line height for current ray
+RAY_perp_dist RMB     2       ; Perpendicular wall distance
+RAY_tmp       RMB     2
+RAY_tmp2      RMB     2
 
-DC_COLOR    RMB  1      ; Couleur de la colonne (0-15)
-DC_POS      RMB  1      ; Position dans le groupe de 4 pixels
-DC_PIX_VAL  RMB  1      ; Valeur de l'octet à écrire (masque + couleur)
-DC_PIX_MSK  RMB  1      ; Masque pour préserver les autres pixels
-DC_END_ADR  RMB  2      ; Adresse de fin selon RAMA/RAMB
+DC_COLOR      RMB     1      ; Couleur de la colonne (0-15)
+DC_POS        RMB     1      ; Position dans le groupe de 4 pixels
+DC_PIX_VAL    RMB     1      ; Valeur de l'octet à écrire (masque + couleur)
+DC_PIX_MSK    RMB     1      ; Masque pour préserver les autres pixels
+DC_END_ADR    RMB     2      ; Adresse de fin selon RAMA/RAMB
 
 
 ; Tables et buffers 
-MAP_LINES   RMB  48     ; 24 pointeurs lignes map
-OFFS_8      RMB  8      ; Table offsets 8 pixels
+MAP_LINES     RMB    48     ; 24 pointeurs lignes map
+OFFS_8        RMB     8      ; Table offsets 8 pixels
 
 
 
@@ -112,14 +125,28 @@ INIT
         ; Init tables
         JSR  INIT_TABLES
         JSR  INIT_SCREEN_OFFS
-        
-        ; Position départ joueur
-        LDD  #$1000    ; X=16.0
-        STD  <PLAYERX
-        LDD  #$0C00    ; Y=12.0
-        STD  <PLAYERY
-        CLRA
-        STA  <ANGLE    ; Angle=0
+        JSR  INIT_RAYCAST
+        RTS
+
+; Initialize ray casting
+INIT_RAYCAST    
+        ; Load initial position
+        LDD     #RAY_POS_X0   ; Starting X
+        STD     <RAY_pos_x
+        LDD     #RAY_POS_Y0   ; Starting Y  
+        STD     <RAY_pos_y
+
+        ; Initial direction
+        LDD     #RAY_DIR_X0
+        STD     <RAY_dir_x
+        LDD     #RAY_DIR_Y0
+        STD     <RAY_dir_y
+
+        ; Initial plane (0,-0.25)
+        LDD     #RAY_PLANE_Y0
+        STD     <RAY_plane_x
+        LDD     #RAY_PLANE_Y0
+        STD     <RAY_plane_y
         RTS
 
 ; Init tables
@@ -147,172 +174,229 @@ OFFS_LOOP
 
 ; Boucle raycasting principale
 RAYCAST_FRAME
-        CLRA
-        STA  <CURR_COL  ; Débute colonne 0
+	; map_pointer_0 = VARPTR(world_map) + map_X0+((WORD)map_Y0)**32
+	; delta_dir_x = 0
+	; delta_dir_y = 0
+	; plane_x_step = plane_x ** 4
+	; plane_y_step = plane_y ** 4
 
-COL     ; Pour chaque colonne de la fenêtre de rendu
+        ; Get initial map pointer from player position and store it onto U
+        LDA     <RAY_pos_x+1  ; High byte = map X
+        LDB     <RAY_pos_y+1  ; High byte = map Y
+        LDU     #MAP          ; Map base address
+        LDA     #MAP_W
+        MUL                   ; D = Y * MAP_WIDTH
+        LEAU    D,U          ; Add Y offset
+        CLRA                 ; Clear A for adding X
+        LDB     <RAY_pos_x+1  ; Get X position
+        LEAU    D,U          ; Add X offset
+
+        ; Calculate ray direction
+        LDD     <RAY_dir_x
+        SUBD    <RAY_plane_x
+        STD     <RAY_ray_x0
+        LDD     <RAY_dir_y
+        SUBD    <RAY_plane_y
+        STD     <RAY_ray_y0
+
+        ; Calculate camera plane steps
+	; plane_x_step = plane_x * 4
+	; plane_y_step = plane_y * 4
+        LDD     <RAY_plane_x
+        LSLB
+        ROLA
+        LSLB
+        ROLA
+        STD     <RAY_plane_x_step
+        LDD     <RAY_plane_y
+        LSLB
+        ROLA
+        LSLB
+        ROLA
+        STD     <RAY_plane_y_step
+
+        LDD     #0
+	STD     <RAY_ddist_x
+	STD     <RAY_ddist_y
+
+        STA     <RAY_cam_x  ; Débute colonne 0
+COL_LOOP
+        ; Pour chaque colonne de la fenêtre de rendu
         JSR  CALC_RAY   ; Calcule direction rayon
         JSR  RAYCAST    ; Lance rayon
         JSR  DRAW_COL   ; Dessine colonne
         
-        INC  <CURR_COL
-        LDA  <CURR_COL
+        INC  <RAY_cam_x
+        LDA  <RAY_cam_x
         CMPA #RENDER_W  ; Compare avec 128 au lieu de 160
-        BNE  COL
+        BNE  COL_LOOP
         RTS
 
 CALC_RAY
-        LDA  <CURR_COL    ; A = x (0-127)
-        SUBA #CENTER_X    ; Centre x (x - 64)
-        LSRA             ; /2 pour FOV
-        ADDA <ANGLE      ; + angle joueur
-        STA  <TEMP       ; Sauvegarde angle
+        ;delta_dir_x_h = PEEK(VARPTR(delta_dir_x))
+        ;ray_dir_x = ray_dir_x0 + delta_dir_x_h
+        LDX     <RAY_ray_x0
+        LDB     <RAY_ddist_x
+        ABX
+        STX     <RAY_ray_x
 
-        ; DELTAY = sin(angle)
-        LDX  #SINTAB     
-        LDA  A,X         ; A = sin(angle) 
-        STA  <DELTAY     ; Sauvegarde pour tester le signe après
-        BMI  NEG_Y
-        LDA  #1          ; STEPY = 1 si sin positif
-        BRA  SAVE_STEPY
-NEG_Y   LDA  #-1         ; STEPY = -1 si sin négatif
-SAVE_STEPY
-        STA  <STEPY
-        
-        LDA  <DELTAY
-        BPL  POS_Y
-        NEGA            ; Prend valeur absolue de sin pour DELTAY
-POS_Y   STA  <DELTAY
-        CLRB            ; B = 0 = partie fractionnaire
-        STB  <DELTAY+1
+        ;REM length of ray from current position to next x or y-side
+        ;v1 = pos_x
+        ;IF ray_dir_x < 0 THEN
+        ;        step_x = $FFFF
+        ;        delta_dist_x = table_div_4096(-ray_dir_x)
+        ;ELSE
+        ;        step_x = $0001
+        ;        v1 = 255 - v1
+        ;        delta_dist_x = table_div_4096(ray_dir_x)
+        ;ENDIF
+        ; Calculate step and initial side dist
+        BMI     CALC_RAY_NEG_X
+        LDA     #$01          ; Step X positive
+        STA     <RAY_step_x
+        LDA     <RAY_pos_x    ; High byte of pos
+        COMA                  ; 255 - pos_x
+        STA     <RAY_tmp
 
-        ; DELTAX = cos(angle) 
-        LDX  #COSTAB
-        LDA  <TEMP      ; Récupère angle
-        LDA  A,X        ; A = cos(angle)
-        STA  <DELTAX    ; Sauvegarde pour tester le signe après
-        BMI  NEG_X
-        LDA  #1         ; STEPX = 1 si cos positif
-        BRA  SAVE_STEPX
-NEG_X   LDA  #-1        ; STEPX = -1 si cos négatif
-SAVE_STEPX
-        STA  <STEPX
+        TFR     X,D
+        LSLB                  ; each table entry is 2 bytes
+        ROLA
+        LDX     #DIV_TABLE_4096
+        LDX     D,X
+        STX     <RAY_ddist_x
+        BRA     CALC_RAY_CONT_X
 
-        LDA  <DELTAX
-        BPL  POS_X
-        NEGA            ; Prend valeur absolue de cos pour DELTAX
-POS_X   STA  <DELTAX
-        CLRB            ; B = 0 = partie fractionnaire
-        STB  <DELTAX+1
+CALC_RAY_NEG_X
+        LDA     #$FF          ; Step X negative
+        STA     <RAY_step_x
+        LDA     <RAY_pos_x
+        STA     <RAY_tmp
+
+        TFR     X,D
+        COMA                  ; -ray_dir_x
+        COMB
+        ADDD    #1
+
+        LSLB                  ; each table entry is 2 bytes
+        ROLA
+        LDX     #DIV_TABLE_4096
+        LDX     D,X
+        STX     <RAY_ddist_x
+
+CALC_RAY_CONT_X
+        ; 16 bits * 8 bits
+        ; side_dist_x = (delta_dist_x * v1) \ 256
+        LDA     <RAY_tmp
+        LDB     <RAY_ddist_x+1
+        MUL
+        STA     <RAY_tmp2
+        LDA     <RAY_tmp
+        LDB     <RAY_ddist_x
+        MUL
+        ADDB    <RAY_tmp2
+        ADCA    #0
+        STD     <RAY_sdist_x
+
+CALC_RAY_Y
+        ;delta_dir_y_h = PEEK(VARPTR(delta_dir_y))
+        ;ray_dir_y = ray_dir_y0 + delta_dir_y_h
+        LDX     <RAY_ray_y0
+        LDB     <RAY_ddist_y
+        ABX
+        STX     <RAY_ray_y
+
+        ;REM length of ray from current position to next x or y-side
+        ;v1 = pos_x
+        ;IF ray_dir_x < 0 THEN
+        ;        step_x = $FFFF
+        ;        delta_dist_x = table_div_4096(-ray_dir_x)
+        ;ELSE
+        ;        step_x = $0001
+        ;        v1 = 255 - v1
+        ;        delta_dist_x = table_div_4096(ray_dir_x)
+        ;ENDIF
+        ; Calculate step and initial side dist
+        BMI     CALC_RAY_NEG_Y
+        LDA     #$20          ; Step Y positive
+        STA     <RAY_step_y
+        LDA     <RAY_pos_y    ; High byte of pos
+        COMA                  ; 255 - pos_y
+        STA     <RAY_tmp
+
+        TFR     X,D
+        LSLB                  ; each table entry is 2 bytes
+        ROLA
+        LDX     #DIV_TABLE_4096
+        LDX     D,X
+        STX     <RAY_ddist_y
+        BRA     CALC_RAY_CONT_Y
+
+CALC_RAY_NEG_Y
+        LDA     #$E0          ; Step X negative
+        STA     <RAY_step_y
+        LDA     <RAY_pos_y
+        STA     <RAY_tmp
+
+        TFR     X,D
+        COMA                  ; -ray_dir_y
+        COMB
+        ADDD    #1
+
+        LSLB                  ; each table entry is 2 bytes
+        ROLA
+        LDX     #DIV_TABLE_4096
+        LDX     D,X
+        STX     <RAY_ddist_y
+
+CALC_RAY_CONT_Y
+        ; 16 bits * 8 bits
+        ; side_dist_x = (delta_dist_x * v1) \ 256
+        LDA     <RAY_tmp
+        LDB     <RAY_ddist_y+1
+        MUL
+        STA     <RAY_tmp2
+        LDA     <RAY_tmp
+        LDB     <RAY_ddist_y
+        MUL
+        ADDB    <RAY_tmp2
+        ADCA    #0
+        STD     <RAY_sdist_y
+
         RTS
 
-RAYCAST
-        ; Init pointeur map
-        LDA  <MAPY
-        LSLA
-        LDX  #MAP_LINES
-        LDX  A,X
-        LDB  <MAPX
-        ABX
-        STX  <MAP_PTR
 
-        ; Init distances côtés
-        ; SIDEX = 256/abs(DELTAX)
-        LDB  <DELTAX       ; B = abs(DELTAX) car déjà positif
-        CLRA               ; A = 0 pour former le diviseur 16 bits
-        TFR  D,X          ; X = diviseur
-        LDD  #256         ; D = dividende
-        JSR  DIV16        ; Effectue la division
-        STD  <SIDEX       ; Sauvegarde le résultat directement
-        
-        ; SIDEY = 256/abs(DELTAY)
-        LDB  <DELTAY      ; B = abs(DELTAY) car déjà positif
-        CLRA              ; A = 0 pour former le diviseur 16 bits
-        TFR  D,X          ; X = diviseur
-        LDD  #256         ; D = dividende
-        JSR  DIV16        ; Effectue la division
-        STD  <SIDEY       ; Sauvegarde le résultat directement
+
+RAYCAST
 
 DDA_LOOP    
-        LDD  <SIDEX
-        CMPD <SIDEY     ; Compare les distances en format 8.8
-        BHS  DO_STEPY   ; Si SIDEX >= SIDEY, on avance en Y
 
 DO_STEPX                ; Cas par défaut : on avance en X 
-        LDX  <MAP_PTR
-        LDB  <STEPX     ; Charge STEPX dans B
-        LEAX B,X        ; Avance dans la direction X en utilisant B
-        STX  <MAP_PTR
-        LDA  ,X         ; Lit la case
-        BNE  HITHORZ    ; Si mur, collision horizontale
-        LDD  <SIDEX
-        ADDD <DELTAX    ; Ajoute DELTAX (maintenant toujours positif)
-        STD  <SIDEX
-        BRA  DDA_LOOP
 
 DO_STEPY   
-        LDX  <MAP_PTR
-        LDB  <STEPY     ; Charge STEPY dans B
-        BPL  UP
-DOWN    
-        LEAX -MAP_W,X
-        BRA  SAVEY2
-UP      
-        LEAX MAP_W,X
-SAVEY2  
-        STX  <MAP_PTR
-        LDA  ,X         ; Lit la case
-        BNE  HITVERT    ; Si mur, collision verticale
-        LDD  <SIDEY
-        ADDD <DELTAY    ; Ajoute DELTAY (maintenant toujours positif)
-        STD  <SIDEY
-        BRA  DDA_LOOP
 
 HITHORZ
-        LDD  <SIDEX     ; Distance en format 8.8
-        STD  <DIST      ; Sauvegarde d'abord la distance
-        LDA  #3         ; Couleur 3 (rouge) pour murs horizontaux
-        STA  <WALL_COLOR
         BRA  CONT_DIST
 
 HITVERT
-        LDD  <SIDEY     ; Distance en format 8.8
-        STD  <DIST      ; Sauvegarde d'abord la distance
         LDA  #4         ; Couleur 4 (rouge clair) pour murs verticaux
-        STA  <WALL_COLOR
+        STA  <RAY_color
 
 CONT_DIST               ; Point de continuation commun
-        ; Si distance = 0 (teste les deux octets)
-        LDD  <DIST      ; Recharge la distance pour test
-        CMPD #0
-        BNE  DIST_OK    ; Si D!=0, calcul normal
-        BRA  SET_MAX_HEIGHT
         
 DIST_OK
-        TFR  D,X         ; X = diviseur (DIST)
-        LDD  #51200      ; D = dividende (200 * 256)
-        JSR  DIV16       ; Division 16 bits
-        TFR  A,B         ; Garde seulement la partie haute du résultat
-        
-        ; Vérifie hauteur max
-        CMPB #200
-        BLS  SAVE_HEIGHT
-
-SET_MAX_HEIGHT
-        LDA  #200
 
 SAVE_HEIGHT
-        STA  <HEIGHT
+        STA  <RAY_line_h
         RTS
 
 DRAW_COL
         ; Vérifie si on a une hauteur valide
-        LDA  <HEIGHT
-        BNE  DC_START   ; Si HEIGHT != 0, continue
+        LDA  <RAY_line_h
+        BNE  DC_START   ; Si RAY_line_h != 0, continue
         RTS             ; Sinon, sort immédiatement
 DC_START
-        ; 1. Calcule l'adresse de base de la colonne (X = CURR_COL + 32)
-        LDA  <CURR_COL     ; 0-127
+        ; 1. Calcule l'adresse de base de la colonne (X = RAY_cam_x + 32)
+        LDA  <RAY_cam_x     ; 0-127
         ADDA #RENDER_X     ; +32 -> 32-159
         
         ; Calcule l'octet de base (X/4) et la position dans l'octet (X%4)
@@ -361,11 +445,11 @@ DC_START_DRAW
         STA  <DC_PIX_VAL   ; Sauvegarde la valeur initiale du pixel
 
         ; 3. Calcule les hauteurs
-        LDA  <HEIGHT      ; D'abord empiler la hauteur du mur
+        LDA  <RAY_line_h      ; D'abord empiler la hauteur du mur
         PSHS A            ; car on la dépilera en dernier
         
         LDA  #SCREEN_H    ; Utilise la constante pour la hauteur totale
-        SUBA <HEIGHT      ; Soustrait la hauteur du mur
+        SUBA <RAY_line_h      ; Soustrait la hauteur du mur
         LSRA             ; Division logique par 2 (pas arithmétique)
         PSHS A            ; Sauve hauteur ciel (sera dépilée en premier)
 
@@ -525,19 +609,19 @@ DRAW_PLAYER
         LDU  #VIDEO_MEM
         
         ; Calcul offset Y (Y * 40 car 40 octets par ligne)
-        LDA  <PLAYERY    ; En big-endian, la partie entière est dans le premier octet
+        LDA  <RAY_pos_y    ; En big-endian, la partie entière est dans le premier octet
         LDB  #80         ; 40 octets par ligne x 2
         MUL
         LEAU D,U        ; Ajoute à l'adresse de base
         
         ; Calcul offset X
-        LDA  <PLAYERX    ; Position X
+        LDA  <RAY_pos_x    ; Position X
         LSRA            ; Divise par 4 car 4 pixels par octet
         LSRA
         LEAU A,U        ; Ajoute à l'adresse de base
         
         ; Détermine le pixel dans l'octet
-        LDA  <PLAYERX    
+        LDA  <RAY_pos_x    
         ANDA #3          ; Modulo 4 pour savoir quel pixel dans l'octet
         
         CMPA #2          ; Compare avec 2 pour savoir si RAMA ou RAMB
@@ -646,46 +730,6 @@ VI_CLEAR_RAMB
         
         RTS
 
-
-*** X=diviseur - D=dividende ***
-DIV16       PSHS      D,X
-            CLRA
-            CLRB
-            LDX        #17
-            BRA       DIV161
-DIV160      ROLB
-            ROLA
-            SUBD     2,S
-            BCC        DIV161
-            ADDD    2,S
-DIV161      ROL       1,S
-            ROL      ,S
-            LEAX     -1,X
-            BNE       DIV160
-            STD       2,S
-            PULS     D,X
-            COMA
-            COMB
-            RTS
-
-****** Division 8 bits ******
-*** D=quotient - X=reste ***
-DIV8        PSHS    A,B
-            LDD     #$0800
-DIV81       ROL     ,S
-            ROLB
-            SUBB    1,S
-            BCC     DIV82
-            ADDB    1,S
-DIV82       DECA
-            BNE     DIV81
-            LDA     ,S++
-            ROLA
-            COMA
-            RTS
-****** Res:A    Rest:B ****** 
-
-
 ; --------------- DONNÉES ---------------
 ; Palette 16 couleurs pour le raycasting
         ALIGN 256
@@ -717,72 +761,206 @@ SCREEN_OFFS
         ; ... généré dynamiquement par INIT_SCREEN_OFFS
 
 ; --------------- TABLES ---------------
-; 192 entrées pour 90 degrés
-; Chaque colonne = 0.46875 degrés
-; Table pour le premier quadrant uniquement
-; Les autres quadrants sont déduits par symétrie:
-;
-; Pour sin(x):
-;   0-191   (0°-90°)   : utiliser  valeur
-;   192-383 (90°-180°) : utiliser  valeur(384-x)
-;   384-575 (180°-270°): utiliser -valeur(x-384)
-;   576-767 (270°-360°): utiliser -valeur(768-x)
-;
-; Pour cos(x):
-;   0-191   (0°-90°)   : utiliser  valeur
-;   192-383 (90°-180°) : utiliser -valeur(384-x)
-;   384-575 (180°-270°): utiliser -valeur(x-384)
-;   576-767 (270°-360°): utiliser  valeur(768-x)
-;
-SIN_Q1  ; Premier quadrant (0°-90°)
-        FDB 1023,1023,1023,1023,1023,1023,1023,1023
-        FDB 1023,1023,956,869,797,736,684,638
-        FDB 599,564,532,505,480,457,436,418
-        FDB 400,385,370,357,344,332,322,311
-        FDB 302,293,285,277,269,262,255,249
-        FDB 243,237,232,227,222,217,213,208
-        FDB 204,200,196,193,189,186,183,180
-        FDB 177,174,171,168,166,163,161,159
-        FDB 156,154,152,150,148,146,144,142
-        FDB 141,139,137,136,134,133,131,130
-        FDB 128,127,126,124,123,122,121,120
-        FDB 118,117,116,115,114,113,112,111
-        FDB 110,110,109,108,107,106,105,105
-        FDB 104,103,102,102,101,100,100,99
-        FDB 98,98,97,97,96,96,95,94
-        FDB 94,93,93,92,92,92,91,91
-        FDB 90,90,89,89,89,88,88,87
-        FDB 87,87,86,86,86,85,85,85
-        FDB 85,84,84,84,83,83,83,83
-        FDB 83,82,82,82,82,81,81,81
-        FDB 81,81,81,80,80,80,80,80
-        FDB 80,80,79,79,79,79,79,79
-        FDB 79,79,79,79,79,78,78,78
-        FDB 78,78,78,78,78,78,78,78
-COS_Q1  ; Premier quadrant (0°-90°)
-        FDB 78,78,78,78,78,78,78,78
-        FDB 78,78,78,78,79,79,79,79
-        FDB 79,79,79,79,79,79,79,80
-        FDB 80,80,80,80,80,80,81,81
-        FDB 81,81,81,81,82,82,82,82
-        FDB 83,83,83,83,83,84,84,84
-        FDB 85,85,85,85,86,86,86,87
-        FDB 87,87,88,88,89,89,89,90
-        FDB 90,91,91,92,92,92,93,93
-        FDB 94,94,95,96,96,97,97,98
-        FDB 98,99,100,100,101,102,102,103
-        FDB 104,105,105,106,107,108,109,110
-        FDB 110,111,112,113,114,115,116,117
-        FDB 118,120,121,122,123,124,126,127
-        FDB 128,130,131,133,134,136,137,139
-        FDB 141,142,144,146,148,150,152,154
-        FDB 156,159,161,163,166,168,171,174
-        FDB 177,180,183,186,189,193,196,200
-        FDB 204,208,213,217,222,227,232,237
-        FDB 243,249,255,262,269,277,285,293
-        FDB 302,311,322,332,344,357,370,385
-        FDB 400,418,436,457,480,505,532,564
-        FDB 599,638,684,736,797,869,956,1023
-        FDB 1023,1023,1023,1023,1023,1023,1023,1023
-        
-        END  START
+; Division table for 4096 divided by integers from 0 to 200
+; Precomputed values
+DIV_TABLE_4096
+        FDB     4096    ; 4096 / 0
+        FDB     4096    ; 4096 / 1
+        FDB     2048    ; 4096 / 2
+        FDB     1365    ; 4096 / 3
+        FDB     1024    ; 4096 / 4
+        FDB     819    ; 4096 / 5
+        FDB     682    ; 4096 / 6
+        FDB     585    ; 4096 / 7
+        FDB     512    ; 4096 / 8
+        FDB     455    ; 4096 / 9
+        FDB     409    ; 4096 / 10
+        FDB     372    ; 4096 / 11
+        FDB     341    ; 4096 / 12
+        FDB     315    ; 4096 / 13
+        FDB     292    ; 4096 / 14
+        FDB     273    ; 4096 / 15
+        FDB     256    ; 4096 / 16
+        FDB     240    ; 4096 / 17
+        FDB     227    ; 4096 / 18
+        FDB     215    ; 4096 / 19
+        FDB     204    ; 4096 / 20
+        FDB     195    ; 4096 / 21
+        FDB     186    ; 4096 / 22
+        FDB     178    ; 4096 / 23
+        FDB     170    ; 4096 / 24
+        FDB     163    ; 4096 / 25
+        FDB     157    ; 4096 / 26
+        FDB     151    ; 4096 / 27
+        FDB     146    ; 4096 / 28
+        FDB     141    ; 4096 / 29
+        FDB     136    ; 4096 / 30
+        FDB     132    ; 4096 / 31
+        FDB     128    ; 4096 / 32
+        FDB     124    ; 4096 / 33
+        FDB     120    ; 4096 / 34
+        FDB     117    ; 4096 / 35
+        FDB     113    ; 4096 / 36
+        FDB     110    ; 4096 / 37
+        FDB     107    ; 4096 / 38
+        FDB     105    ; 4096 / 39
+        FDB     102    ; 4096 / 40
+        FDB     99    ; 4096 / 41
+        FDB     97    ; 4096 / 42
+        FDB     95    ; 4096 / 43
+        FDB     93    ; 4096 / 44
+        FDB     91    ; 4096 / 45
+        FDB     89    ; 4096 / 46
+        FDB     87    ; 4096 / 47
+        FDB     85    ; 4096 / 48
+        FDB     83    ; 4096 / 49
+        FDB     81    ; 4096 / 50
+        FDB     80    ; 4096 / 51
+        FDB     78    ; 4096 / 52
+        FDB     77    ; 4096 / 53
+        FDB     75    ; 4096 / 54
+        FDB     74    ; 4096 / 55
+        FDB     73    ; 4096 / 56
+        FDB     71    ; 4096 / 57
+        FDB     70    ; 4096 / 58
+        FDB     69    ; 4096 / 59
+        FDB     68    ; 4096 / 60
+        FDB     67    ; 4096 / 61
+        FDB     66    ; 4096 / 62
+        FDB     65    ; 4096 / 63
+        FDB     64    ; 4096 / 64
+        FDB     63    ; 4096 / 65
+        FDB     62    ; 4096 / 66
+        FDB     61    ; 4096 / 67
+        FDB     60    ; 4096 / 68
+        FDB     59    ; 4096 / 69
+        FDB     58    ; 4096 / 70
+        FDB     57    ; 4096 / 71
+        FDB     56    ; 4096 / 72
+        FDB     56    ; 4096 / 73
+        FDB     55    ; 4096 / 74
+        FDB     54    ; 4096 / 75
+        FDB     53    ; 4096 / 76
+        FDB     53    ; 4096 / 77
+        FDB     52    ; 4096 / 78
+        FDB     51    ; 4096 / 79
+        FDB     51    ; 4096 / 80
+        FDB     50    ; 4096 / 81
+        FDB     49    ; 4096 / 82
+        FDB     49    ; 4096 / 83
+        FDB     48    ; 4096 / 84
+        FDB     48    ; 4096 / 85
+        FDB     47    ; 4096 / 86
+        FDB     47    ; 4096 / 87
+        FDB     46    ; 4096 / 88
+        FDB     46    ; 4096 / 89
+        FDB     45    ; 4096 / 90
+        FDB     45    ; 4096 / 91
+        FDB     44    ; 4096 / 92
+        FDB     44    ; 4096 / 93
+        FDB     43    ; 4096 / 94
+        FDB     43    ; 4096 / 95
+        FDB     42    ; 4096 / 96
+        FDB     42    ; 4096 / 97
+        FDB     41    ; 4096 / 98
+        FDB     41    ; 4096 / 99
+        FDB     40    ; 4096 / 100
+        FDB     40    ; 4096 / 101
+        FDB     40    ; 4096 / 102
+        FDB     39    ; 4096 / 103
+        FDB     39    ; 4096 / 104
+        FDB     39    ; 4096 / 105
+        FDB     38    ; 4096 / 106
+        FDB     38    ; 4096 / 107
+        FDB     37    ; 4096 / 108
+        FDB     37    ; 4096 / 109
+        FDB     37    ; 4096 / 110
+        FDB     36    ; 4096 / 111
+        FDB     36    ; 4096 / 112
+        FDB     36    ; 4096 / 113
+        FDB     35    ; 4096 / 114
+        FDB     35    ; 4096 / 115
+        FDB     35    ; 4096 / 116
+        FDB     35    ; 4096 / 117
+        FDB     34    ; 4096 / 118
+        FDB     34    ; 4096 / 119
+        FDB     34    ; 4096 / 120
+        FDB     33    ; 4096 / 121
+        FDB     33    ; 4096 / 122
+        FDB     33    ; 4096 / 123
+        FDB     33    ; 4096 / 124
+        FDB     32    ; 4096 / 125
+        FDB     32    ; 4096 / 126
+        FDB     32    ; 4096 / 127
+        FDB     32    ; 4096 / 128
+        FDB     31    ; 4096 / 129
+        FDB     31    ; 4096 / 130
+        FDB     31    ; 4096 / 131
+        FDB     31    ; 4096 / 132
+        FDB     30    ; 4096 / 133
+        FDB     30    ; 4096 / 134
+        FDB     30    ; 4096 / 135
+        FDB     30    ; 4096 / 136
+        FDB     29    ; 4096 / 137
+        FDB     29    ; 4096 / 138
+        FDB     29    ; 4096 / 139
+        FDB     29    ; 4096 / 140
+        FDB     29    ; 4096 / 141
+        FDB     28    ; 4096 / 142
+        FDB     28    ; 4096 / 143
+        FDB     28    ; 4096 / 144
+        FDB     28    ; 4096 / 145
+        FDB     28    ; 4096 / 146
+        FDB     27    ; 4096 / 147
+        FDB     27    ; 4096 / 148
+        FDB     27    ; 4096 / 149
+        FDB     27    ; 4096 / 150
+        FDB     27    ; 4096 / 151
+        FDB     26    ; 4096 / 152
+        FDB     26    ; 4096 / 153
+        FDB     26    ; 4096 / 154
+        FDB     26    ; 4096 / 155
+        FDB     26    ; 4096 / 156
+        FDB     26    ; 4096 / 157
+        FDB     25    ; 4096 / 158
+        FDB     25    ; 4096 / 159
+        FDB     25    ; 4096 / 160
+        FDB     25    ; 4096 / 161
+        FDB     25    ; 4096 / 162
+        FDB     25    ; 4096 / 163
+        FDB     24    ; 4096 / 164
+        FDB     24    ; 4096 / 165
+        FDB     24    ; 4096 / 166
+        FDB     24    ; 4096 / 167
+        FDB     24    ; 4096 / 168
+        FDB     24    ; 4096 / 169
+        FDB     24    ; 4096 / 170
+        FDB     23    ; 4096 / 171
+        FDB     23    ; 4096 / 172
+        FDB     23    ; 4096 / 173
+        FDB     23    ; 4096 / 174
+        FDB     23    ; 4096 / 175
+        FDB     23    ; 4096 / 176
+        FDB     23    ; 4096 / 177
+        FDB     23    ; 4096 / 178
+        FDB     22    ; 4096 / 179
+        FDB     22    ; 4096 / 180
+        FDB     22    ; 4096 / 181
+        FDB     22    ; 4096 / 182
+        FDB     22    ; 4096 / 183
+        FDB     22    ; 4096 / 184
+        FDB     22    ; 4096 / 185
+        FDB     22    ; 4096 / 186
+        FDB     21    ; 4096 / 187
+        FDB     21    ; 4096 / 188
+        FDB     21    ; 4096 / 189
+        FDB     21    ; 4096 / 190
+        FDB     21    ; 4096 / 191
+        FDB     21    ; 4096 / 192
+        FDB     21    ; 4096 / 193
+        FDB     21    ; 4096 / 194
+        FDB     21    ; 4096 / 195
+        FDB     20    ; 4096 / 196
+        FDB     20    ; 4096 / 197
+        FDB     20    ; 4096 / 198
+        FDB     20    ; 4096 / 199

@@ -3,7 +3,7 @@
 def generate_div_table():
     div_table = []
     div_table.append(4096)
-    for i in range(1, 200):
+    for i in range(1, 1024):
         div_value = 4096 // i
         div_table.append(div_value)
     return div_table
@@ -13,7 +13,7 @@ def format_asm_table(div_table):
                  "; Precomputed values",
                  "",
                  "DIV_TABLE"]
-    for i in range(0, 200):
+    for i in range(0, 1024):
         asm_lines.append(f"        FDB     {div_table[i]}    ; 4096 / {i}")
     return "\n".join(asm_lines)
 

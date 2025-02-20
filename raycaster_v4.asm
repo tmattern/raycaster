@@ -89,6 +89,7 @@ RAY_line_h    RMB     1       ; Line height for current ray
 RAY_perp_dist RMB     2       ; Perpendicular wall distance
 RAY_tmp       RMB     2
 RAY_tmp2      RMB     2
+RAY_map_pointer RMB   2
 
 DC_COLOR      RMB     1      ; Couleur de la colonne (0-15)
 DC_POS        RMB     1      ; Position dans le groupe de 4 pixels
@@ -98,7 +99,6 @@ DC_END_ADR    RMB     2      ; Adresse de fin selon RAMA/RAMB
 
 
 ; Tables et buffers 
-MAP_LINES     RMB    48     ; 24 pointeurs lignes map
 OFFS_8        RMB     8      ; Table offsets 8 pixels
 
 
@@ -125,9 +125,9 @@ MAIN_LOOP
 ; Initialisation 
 INIT    
         ; Init tables
-        JSR  INIT_TABLES
         JSR  INIT_SCREEN_OFFS
         JSR  INIT_RAYCAST
+        JSR  INIT_MAP_POINTER
         RTS
 
 ; Initialize ray casting
@@ -151,27 +151,26 @@ INIT_RAYCAST
         STD     <RAY_plane_y
         RTS
 
-; Init tables
-INIT_TABLES
-        ; Init MAP_LINES
-        LDX  #MAP_LINES
-        LDY  #MAP
-INIT_LINE    
-        STY  ,X++
-        LEAY MAP_W,Y
-        CMPX #MAP_LINES+48
-        BNE  INIT_LINE
-        RTS
-
 ; Init table offsets écran
 INIT_SCREEN_OFFS
         LDX  #SCREEN_OFFS
         LDD  #0
-OFFS_LOOP    
+OFFS_LOOP
         STD  ,X++
         ADDD #80
         CMPX #SCREEN_OFFS+400
         BNE  OFFS_LOOP
+        RTS
+
+INIT_MAP_POINTER
+	; map_pointer_0 = VARPTR(world_map) + map_X0+((WORD)map_Y0)**32
+        LDA     <RAY_pos_y    ; High byte = map Y
+        LDB     #32
+        MUL
+        ADDB    <RAY_pos_x
+        ADCA    #0
+        ADDD    #MAP
+        STD     <RAY_map_pointer
         RTS
 
 ; Boucle raycasting principale
@@ -181,17 +180,6 @@ RAYCAST_FRAME
 	; delta_dir_y = 0
 	; plane_x_step = plane_x ** 4
 	; plane_y_step = plane_y ** 4
-
-        ; Get initial map pointer from player position and store it onto U
-        LDA     <RAY_pos_x    ; High byte = map X
-        LDB     <RAY_pos_y    ; High byte = map Y
-        LDU     #MAP          ; Map base address
-        LDA     #MAP_W
-        MUL                   ; D = Y * MAP_WIDTH
-        LEAU    D,U           ; Add Y offset
-        CLRA                  ; Clear A for adding X
-        LDB     <RAY_pos_x+1  ; Get X position
-        LEAU    D,U           ; Add X offset
 
         ; Calculate ray direction
         LDD     <RAY_dir_x
@@ -261,7 +249,7 @@ CALC_RAY
         BMI     CALC_RAY_NEG_X
         LDA     #$01          ; Step X positive
         STA     <RAY_step_x
-        LDA     <RAY_pos_x    ; High byte of pos
+        LDA     <RAY_pos_x+1  ; Low byte of pos
         COMA                  ; 255 - pos_x
         STA     <RAY_tmp
 
@@ -326,7 +314,7 @@ CALC_RAY_Y
         BMI     CALC_RAY_NEG_Y
         LDA     #$20          ; Step Y positive
         STA     <RAY_step_y
-        LDA     <RAY_pos_y    ; High byte of pos
+        LDA     <RAY_pos_y+1  ; Low byte of pos
         COMA                  ; 255 - pos_y
         STA     <RAY_tmp
 
@@ -339,7 +327,7 @@ CALC_RAY_Y
         BRA     CALC_RAY_CONT_Y
 
 CALC_RAY_NEG_Y
-        LDA     #$E0          ; Step X negative
+        LDA     #$E0          ; Step Y negative
         STA     <RAY_step_y
         LDA     <RAY_pos_y
         STA     <RAY_tmp
@@ -370,6 +358,8 @@ CALC_RAY_CONT_Y
         STD     <RAY_sdist_y
 
 ; DDA Loop - U register holds current map pointer
+        LDU     <RAY_map_pointer
+
 RAY_DDALoop
         ; Compare side distances
         LDD     <RAY_sdist_x
@@ -379,7 +369,8 @@ RAY_DDALoop
         ; Step in X direction
         ADDD    <RAY_ddist_x
         STD     <RAY_sdist_x
-        LEAU    <RAY_step_x,U ; Add X step directly to pointer
+        LDA     <RAY_step_x
+        LEAU    A,U           ; Add X step directly to pointer
         LDA     ,U            ; Get map cell
         BEQ     RAY_DDALoop   ; Continue if empty
         LSLA
@@ -393,7 +384,8 @@ RAY_StepY
         LDD     <RAY_sdist_y
         ADDD    <RAY_ddist_y
         STD     <RAY_sdist_y
-        LEAU    <RAY_step_y,U ; Add Y step directly to pointer
+        LDA     <RAY_step_y
+        LEAU    A,U           ; Add Y step directly to pointer
         LDA     ,U            ; Get map cell
         BEQ     RAY_DDALoop   ; Continue if empty
         LSLA
@@ -797,9 +789,7 @@ PALETTE
 ; Table des offsets écran
         ALIGN 256
 SCREEN_OFFS
-        FDB  0,80,160,240,320,400,480,560,640,720,800
-        ; ... généré dynamiquement par INIT_SCREEN_OFFS
-
+        RMB  400
 ; --------------- TABLES ---------------
 ; Division table for 4096 divided by integers from 0 to 1023
 ; Precomputed values

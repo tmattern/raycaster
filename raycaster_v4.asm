@@ -21,95 +21,20 @@ RAY_POS_X0    EQU  18*256+63 ; Position initiale joueur X
 RAY_POS_Y0    EQU  9*256+63  ; Position initiale joueur Y
 RAY_DIR_X0    EQU  -128
 RAY_DIR_Y0    EQU  0
-RAY_PLANE_X0  EQU  0
-RAY_PLANE_Y0  EQU  -63
 
 ; Constantes pour la mini-map
 MAP_DISP_W  EQU  32     ; Largeur en pixels de la mini-map
 MAP_DISP_H  EQU  48     ; Hauteur en pixels de la mini-map (24*2)
 
         ORG  $A000
-        LBRA  START     ; Saut vers le code principal
-
-; --------------- MAP 32x24 ---------------
-        ALIGN 256
-MAP     
-        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,1,2,1,7,6,5,4,3,2,1,7,6,5,4,3,2,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,1,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
-        FCB     1,0,0,1,6,6,7,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1
-        FCB     1,0,0,1,1,6,5,4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1
-        FCB     1,0,0,1,1,7,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
-        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
-        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,1,5,5,5,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1
-        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1
-        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
-        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
-
-; --------------- VARIABLES ---------------
-        ALIGN 256
-; Variables page directe (avec DP=$A4)
-RAY_pos_x     RMB     2       ; Fixed point 8.8
-RAY_pos_y     RMB     2       ; Fixed point 8.8
-RAY_dir_x     RMB     2       ; Direction vector
-RAY_dir_y     RMB     2
-RAY_plane_x   RMB     2       ; Camera plane
-RAY_plane_y   RMB     2
-RAY_ray_x     RMB     2       ; Current ray direction
-RAY_ray_y     RMB     2
-RAY_ray_x0    RMB     2
-RAY_ray_y0    RMB     2
-RAY_plane_x_step RMB  2
-RAY_plane_y_step RMB  2
-RAY_ray_x_delta RMB   2
-RAY_ray_y_delta RMB   2
-RAY_ddist_x   RMB     2       ; Delta distance
-RAY_ddist_y   RMB     2
-RAY_sdist_x   RMB     2       ; Side distance
-RAY_sdist_y   RMB     2
-RAY_step_x    RMB     1       ; Step values ($FF or $01)
-RAY_step_y    RMB     1       ; Step values ($E0 or $20)
-RAY_cam_x     RMB     1       ; Screen x coordinate
-RAY_side      RMB     1       ; Wall side hit (0=NS, 1=EW)
-RAY_color     RMB     1       ; Current wall color
-RAY_line_h    RMB     1       ; Line height for current ray
-RAY_perp_dist RMB     2       ; Perpendicular wall distance
-RAY_tmp       RMB     2
-RAY_tmp2      RMB     2
-RAY_map_pointer RMB   2
-
-DC_COLOR      RMB     1      ; Couleur de la colonne (0-15)
-DC_POS        RMB     1      ; Position dans le groupe de 4 pixels
-DC_PIX_VAL    RMB     1      ; Valeur de l'octet à écrire (masque + couleur)
-DC_PIX_MSK    RMB     1      ; Masque pour préserver les autres pixels
-DC_END_ADR    RMB     2      ; Adresse de fin selon RAMA/RAMB
-
-
-; Tables et buffers 
-OFFS_8        RMB     8      ; Table offsets 8 pixels
-
-
 
 ; --------------- CODE PRINCIPAL ---------------
 START   
         ; Init système
         ORCC #$50       ; Désactive interruptions
         
-        ; Configure DP=$A4
-        LDA  #$A4       ; Correct car les variables sont en $A4xx
+        ; Configure DP pour les variables
+        LDD #VARIABLES
         TFR  A,DP
         
         ; Init mode vidéo
@@ -120,6 +45,8 @@ START
         
 MAIN_LOOP
         JSR  RAYCAST_FRAME
+        JSR  PLAYER
+
         BRA  MAIN_LOOP
 
 ; Initialisation 
@@ -127,6 +54,7 @@ INIT
         ; Init tables
         JSR  INIT_SCREEN_OFFS
         JSR  INIT_RAYCAST
+        JSR  COMPUTE_DIRS
         JSR  INIT_MAP_POINTER
         RTS
 
@@ -138,18 +66,45 @@ INIT_RAYCAST
         LDD     #RAY_POS_Y0   ; Starting Y  
         STD     <RAY_pos_y
 
-        ; Initial direction
-        LDD     #RAY_DIR_X0
+        CLR     <RAY_angle
+        JSR     COMPUTE_DIRS
+        RTS
+
+COMPUTE_DIRS
+        ; dir_x
+        LDB     <RAY_angle
+        LDX     #DIR_TABLE
+        ABX
+        LDB     ,X
+        SEX
         STD     <RAY_dir_x
-        LDD     #RAY_DIR_Y0
+
+        ; plane_x = t[angle+64 mod 256] /2
+        LDB     <RAY_angle
+        ADDB    #64
+        LDX     #DIR_TABLE
+        ABX
+        LDB     ,X
+        SEX
+        ASRB
+        STD     <RAY_plane_x
+
+        ; dir_y = t[angle+192 mod 256]
+        LDB     <RAY_angle
+        ADDB    #192
+        LDX     #DIR_TABLE
+        ABX
+        LDB     ,X
+        SEX
         STD     <RAY_dir_y
 
-        ; Initial plane (0,-0.25)
-        LDD     #RAY_PLANE_Y0
-        STD     <RAY_plane_x
-        LDD     #RAY_PLANE_Y0
+        ; plane_y = dir_x / 2
+        LDB     <RAY_dir_x+1
+        SEX
+        ASRB
         STD     <RAY_plane_y
         RTS
+
 
 ; Init table offsets écran
 INIT_SCREEN_OFFS
@@ -175,7 +130,6 @@ INIT_MAP_POINTER
 
 ; Boucle raycasting principale
 RAYCAST_FRAME
-	; map_pointer_0 = VARPTR(world_map) + map_X0+((WORD)map_Y0)**32
 	; delta_dir_x = 0
 	; delta_dir_y = 0
 	; plane_x_step = plane_x ** 4
@@ -264,7 +218,7 @@ CALC_RAY
 CALC_RAY_NEG_X
         LDA     #$FF          ; Step X negative
         STA     <RAY_step_x
-        LDA     <RAY_pos_x
+        LDA     <RAY_pos_x+1
         STA     <RAY_tmp
 
         TFR     X,D
@@ -329,7 +283,7 @@ CALC_RAY_Y
 CALC_RAY_NEG_Y
         LDA     #$E0          ; Step Y negative
         STA     <RAY_step_y
-        LDA     <RAY_pos_y
+        LDA     <RAY_pos_y+1
         STA     <RAY_tmp
 
         TFR     X,D
@@ -406,6 +360,7 @@ RAY_HitWall
         ; we want an index between 68/4=17 and 4095/4=1023. 
         LSRA                   ; each table entry is 2 bytes.
         RORB                   ; index=(RAY_perp_dist/4)*2=RAY_perp_dist/2
+        ANDB    #$FE           ; force lower bit set to 0
         LDX     #DIV_TABLE_4096
         LDD     D,X
         BRA     RAY_SAVE_HEIGHT
@@ -508,10 +463,14 @@ DC_WALL
         ; Prépare couleur mur (3)
         TST  <DC_PIX_MSK    ; Test si on est en poids fort
         BMI  DC_WALL_LOW    ; Si masque = $F0, position basse
-        LDB  #3*16          ; Couleur en position haute
+        LDB  <RAY_color
+        ASLB
+        ASLB
+        ASLB
+        ASLB
         BRA  DC_WALL_SET
 DC_WALL_LOW
-        LDB  #3            ; Couleur en position basse
+        LDB  <RAY_color
 DC_WALL_SET
         STB  <DC_PIX_VAL
 
@@ -762,9 +721,64 @@ VI_CLEAR_RAMB
         
         RTS
 
+PLAYER
+        ; deplacement
+        ;LDD  <RAY_pos_x
+        ;SUBD #20
+        ;STD  <RAY_pos_x
+
+        ; rotation
+        LDA <RAY_angle
+        ADDA #4
+        STA <RAY_angle
+
+        JSR  COMPUTE_DIRS
+        JSR  INIT_MAP_POINTER
+
+        RTS
+
+; --------------- VARIABLES ---------------
+        ALIGN 256
+VARIABLES
+; Variables page directe
+RAY_pos_x     RMB     2       ; Fixed point 8.8
+RAY_pos_y     RMB     2       ; Fixed point 8.8
+RAY_dir_x     RMB     2       ; Direction vector
+RAY_dir_y     RMB     2
+RAY_plane_x   RMB     2       ; Camera plane
+RAY_plane_y   RMB     2
+RAY_ray_x     RMB     2       ; Current ray direction
+RAY_ray_y     RMB     2
+RAY_ray_x0    RMB     2
+RAY_ray_y0    RMB     2
+RAY_plane_x_step RMB  2
+RAY_plane_y_step RMB  2
+RAY_ray_x_delta RMB   2
+RAY_ray_y_delta RMB   2
+RAY_ddist_x   RMB     2       ; Delta distance
+RAY_ddist_y   RMB     2
+RAY_sdist_x   RMB     2       ; Side distance
+RAY_sdist_y   RMB     2
+RAY_step_x    RMB     1       ; Step values ($FF or $01)
+RAY_step_y    RMB     1       ; Step values ($E0 or $20)
+RAY_cam_x     RMB     1       ; Screen x coordinate
+RAY_side      RMB     1       ; Wall side hit (0=NS, 1=EW)
+RAY_color     RMB     1       ; Current wall color
+RAY_line_h    RMB     1       ; Line height for current ray
+RAY_perp_dist RMB     2       ; Perpendicular wall distance
+RAY_tmp       RMB     2
+RAY_tmp2      RMB     2
+RAY_map_pointer RMB   2
+RAY_angle     RMB     1
+
+DC_COLOR      RMB     1      ; Couleur de la colonne (0-15)
+DC_POS        RMB     1      ; Position dans le groupe de 4 pixels
+DC_PIX_VAL    RMB     1      ; Valeur de l'octet à écrire (masque + couleur)
+DC_PIX_MSK    RMB     1      ; Masque pour préserver les autres pixels
+DC_END_ADR    RMB     2      ; Adresse de fin selon RAMA/RAMB
+
 ; --------------- DONNÉES ---------------
 ; Palette 16 couleurs pour le raycasting
-        ALIGN 256
 PALETTE
         ; Format: 16 mots de 2 octets (GR,B)
         ; Premier octet - GR: Bits 7-4: Vert, Bits 3-0: Rouge
@@ -786,10 +800,38 @@ PALETTE
         FDB  $F000      ; 14: Vert clair UI (V=F,R=0)
         FDB  $FF0F      ; 15: Blanc brillant UI (V=F,R=F)
 
+
+; --------------- MAP 32x24 ---------------
+MAP     
+        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,2,1,7,6,5,4,3,2,1,7,6,5,4,3,2,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,1,5,5,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,1,6,6,7,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1
+        FCB     1,0,0,1,1,6,5,4,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1
+        FCB     1,0,0,1,1,7,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
+        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,1,1,1
+        FCB     1,0,0,1,1,5,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,4,4,4,4,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,1,5,5,5,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1
+        FCB     1,0,0,0,1,1,1,0,0,0,0,0,3,3,0,0,0,1,1,1,1,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,0,0,0,0,0,0,0,0,0,0,0,3,3,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1
+        FCB     1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1
+
 ; Table des offsets écran
-        ALIGN 256
 SCREEN_OFFS
         RMB  400
+
 ; --------------- TABLES ---------------
 ; Division table for 4096 divided by integers from 0 to 1023
 ; Precomputed values
@@ -1818,3 +1860,268 @@ DIV_TABLE_4096
         FDB     4    ; 4096 / 1021
         FDB     4    ; 4096 / 1022
         FDB     4    ; 4096 / 1023
+
+; Direction table dir_x, dir_y, plane_x, plane_y
+; Precomputed values
+;    dir_x = t[angle]
+;    plane_x = t[angle+64 mod 256] /2
+;    dir_y = t[angle+192 mod 256]
+;    plane_y = dir_x / 2
+
+DIR_TABLE
+        FCB     -127
+        FCB     -126
+        FCB     -126
+        FCB     -126
+        FCB     -126
+        FCB     -126
+        FCB     -125
+        FCB     -125
+        FCB     -124
+        FCB     -123
+        FCB     -123
+        FCB     -122
+        FCB     -121
+        FCB     -120
+        FCB     -119
+        FCB     -118
+        FCB     -117
+        FCB     -116
+        FCB     -114
+        FCB     -113
+        FCB     -112
+        FCB     -110
+        FCB     -108
+        FCB     -107
+        FCB     -105
+        FCB     -103
+        FCB     -102
+        FCB     -100
+        FCB     -98
+        FCB     -96
+        FCB     -94
+        FCB     -91
+        FCB     -89
+        FCB     -87
+        FCB     -85
+        FCB     -82
+        FCB     -80
+        FCB     -78
+        FCB     -75
+        FCB     -73
+        FCB     -70
+        FCB     -67
+        FCB     -65
+        FCB     -62
+        FCB     -59
+        FCB     -57
+        FCB     -54
+        FCB     -51
+        FCB     -48
+        FCB     -45
+        FCB     -42
+        FCB     -39
+        FCB     -36
+        FCB     -33
+        FCB     -30
+        FCB     -27
+        FCB     -24
+        FCB     -21
+        FCB     -18
+        FCB     -15
+        FCB     -12
+        FCB     -9
+        FCB     -6
+        FCB     -3
+        FCB     0
+        FCB     3
+        FCB     6
+        FCB     9
+        FCB     12
+        FCB     15
+        FCB     18
+        FCB     21
+        FCB     24
+        FCB     27
+        FCB     30
+        FCB     33
+        FCB     36
+        FCB     39
+        FCB     42
+        FCB     45
+        FCB     48
+        FCB     51
+        FCB     54
+        FCB     57
+        FCB     59
+        FCB     62
+        FCB     65
+        FCB     67
+        FCB     70
+        FCB     73
+        FCB     75
+        FCB     78
+        FCB     80
+        FCB     82
+        FCB     85
+        FCB     87
+        FCB     89
+        FCB     91
+        FCB     94
+        FCB     96
+        FCB     98
+        FCB     100
+        FCB     102
+        FCB     103
+        FCB     105
+        FCB     107
+        FCB     108
+        FCB     110
+        FCB     112
+        FCB     113
+        FCB     114
+        FCB     116
+        FCB     117
+        FCB     118
+        FCB     119
+        FCB     120
+        FCB     121
+        FCB     122
+        FCB     123
+        FCB     123
+        FCB     124
+        FCB     125
+        FCB     125
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     127
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     126
+        FCB     125
+        FCB     125
+        FCB     124
+        FCB     123
+        FCB     123
+        FCB     122
+        FCB     121
+        FCB     120
+        FCB     119
+        FCB     118
+        FCB     117
+        FCB     116
+        FCB     114
+        FCB     113
+        FCB     112
+        FCB     110
+        FCB     108
+        FCB     107
+        FCB     105
+        FCB     103
+        FCB     102
+        FCB     100
+        FCB     98
+        FCB     96
+        FCB     94
+        FCB     91
+        FCB     89
+        FCB     87
+        FCB     85
+        FCB     82
+        FCB     80
+        FCB     78
+        FCB     75
+        FCB     73
+        FCB     70
+        FCB     67
+        FCB     65
+        FCB     62
+        FCB     59
+        FCB     57
+        FCB     54
+        FCB     51
+        FCB     48
+        FCB     45
+        FCB     42
+        FCB     39
+        FCB     36
+        FCB     33
+        FCB     30
+        FCB     27
+        FCB     24
+        FCB     21
+        FCB     18
+        FCB     15
+        FCB     12
+        FCB     9
+        FCB     6
+        FCB     3
+        FCB     0
+        FCB     -3
+        FCB     -6
+        FCB     -9
+        FCB     -12
+        FCB     -15
+        FCB     -18
+        FCB     -21
+        FCB     -24
+        FCB     -27
+        FCB     -30
+        FCB     -33
+        FCB     -36
+        FCB     -39
+        FCB     -42
+        FCB     -45
+        FCB     -48
+        FCB     -51
+        FCB     -54
+        FCB     -57
+        FCB     -59
+        FCB     -62
+        FCB     -65
+        FCB     -67
+        FCB     -70
+        FCB     -73
+        FCB     -75
+        FCB     -78
+        FCB     -80
+        FCB     -82
+        FCB     -85
+        FCB     -87
+        FCB     -89
+        FCB     -91
+        FCB     -94
+        FCB     -96
+        FCB     -98
+        FCB     -100
+        FCB     -102
+        FCB     -103
+        FCB     -105
+        FCB     -107
+        FCB     -108
+        FCB     -110
+        FCB     -112
+        FCB     -113
+        FCB     -114
+        FCB     -116
+        FCB     -117
+        FCB     -118
+        FCB     -119
+        FCB     -120
+        FCB     -121
+        FCB     -122
+        FCB     -123
+        FCB     -123
+        FCB     -124
+        FCB     -125
+        FCB     -125
+        FCB     -126
+        FCB     -126
+        FCB     -126
+        FCB     -126
+        FCB     -126

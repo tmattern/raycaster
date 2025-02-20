@@ -201,8 +201,12 @@ CALC_RAY
         ;ENDIF
         ; Calculate step and initial side dist
         BMI     CALC_RAY_NEG_X
-        LDA     #$01          ; Step X positive
-        STA     <RAY_step_x
+
+        ; code auto-modifiant
+        ; LEAU 1,U   32 41 ou LEAU -1,U  32 5F
+        LDA     #$41          ; Step X positive
+        STA     RAY_DDA_INC_X+1
+
         LDA     <RAY_pos_x+1  ; Low byte of pos
         COMA                  ; 255 - pos_x
         STA     <RAY_tmp
@@ -216,8 +220,11 @@ CALC_RAY
         BRA     CALC_RAY_CONT_X
 
 CALC_RAY_NEG_X
-        LDA     #$FF          ; Step X negative
-        STA     <RAY_step_x
+        ; code auto-modifiant
+        ; LEAU 1,U   32 41 ou LEAU -1,U  32 5F
+        LDA     #$5F          ; Step X negative
+        STA     RAY_DDA_INC_X+1
+
         LDA     <RAY_pos_x+1
         STA     <RAY_tmp
 
@@ -266,8 +273,12 @@ CALC_RAY_Y
         ;ENDIF
         ; Calculate step and initial side dist
         BMI     CALC_RAY_NEG_Y
+
+        ; code auto-modifiant
+        ; LEAU 32,U   32 C8 20 ou LEAU -32,U   32 C8 E0
         LDA     #$20          ; Step Y positive
-        STA     <RAY_step_y
+        STA     RAY_DDA_INC_Y+2
+
         LDA     <RAY_pos_y+1  ; Low byte of pos
         COMA                  ; 255 - pos_y
         STA     <RAY_tmp
@@ -281,8 +292,11 @@ CALC_RAY_Y
         BRA     CALC_RAY_CONT_Y
 
 CALC_RAY_NEG_Y
+        ; code auto-modifiant
+        ; LEAU 32,U   32 C8 20 ou LEAU -32,U   32 C8 E0
         LDA     #$E0          ; Step Y negative
-        STA     <RAY_step_y
+        STA     RAY_DDA_INC_Y+2
+
         LDA     <RAY_pos_y+1
         STA     <RAY_tmp
 
@@ -309,44 +323,65 @@ CALC_RAY_CONT_Y
         MUL
         ADDB    <RAY_tmp2
         ADCA    #0
-        STD     <RAY_sdist_y
 
 ; DDA Loop - U register holds current map pointer
         LDU     <RAY_map_pointer
 
-RAY_DDALoop
-        ; Compare side distances
+RAY_Switch_X
+        STD     <RAY_sdist_y
         LDD     <RAY_sdist_x
-        CMPD    <RAY_sdist_y
-        BHS     RAY_StepY
+        BRA     RAY_StepX
 
+RAY_DDALoop_X
+        ; Compare side distances
+        CMPD    <RAY_sdist_y
+        BHS     RAY_Switch_Y
+
+RAY_StepX
         ; Step in X direction
         ADDD    <RAY_ddist_x
-        STD     <RAY_sdist_x
-        LDA     <RAY_step_x
-        LEAU    A,U           ; Add X step directly to pointer
-        LDA     ,U            ; Get map cell
-        BEQ     RAY_DDALoop   ; Continue if empty
+
+RAY_DDA_INC_X
+        ; code auto modifiant
+        ;LEAU 1,U   32 41
+        ;LEAU -1,U  32 5F
+        LEAU    1,U           ; Add X step directly to pointer
+        TST     ,U            ; Test map cell        
+        BEQ     RAY_DDALoop_X ; Continue if empty
+
+        STD     <RAY_perp_dist ; Store perp dist from sdist_x
+        LDA     ,U
         LSLA
         STA     <RAY_color
-        LDD     <RAY_sdist_x
-        STD     <RAY_perp_dist ; Store perp dist from sdist_x
         CLR     <RAY_side     ; Hit NS wall
         BRA     RAY_HitWall
 
-RAY_StepY
+RAY_Switch_Y
+        STD     <RAY_sdist_x
         LDD     <RAY_sdist_y
+        BRA     RAY_StepY
+
+RAY_DDALoop_Y
+        ; Compare side distances
+        CMPD    <RAY_sdist_x
+        BHI     RAY_Switch_X
+
+RAY_StepY
         ADDD    <RAY_ddist_y
-        STD     <RAY_sdist_y
-        LDA     <RAY_step_y
-        LEAU    A,U           ; Add Y step directly to pointer
-        LDA     ,U            ; Get map cell
-        BEQ     RAY_DDALoop   ; Continue if empty
+
+RAY_DDA_INC_Y
+        ; code auto modifiant
+        ; LEAU 32,U   32 C8 20
+        ; LEAU -32,U. 32 C8 E0
+        LEAU    32,U            ; Add Y step directly to pointer
+        TST     ,U              ; Get map cell
+        BEQ     RAY_DDALoop_Y   ; Continue if empty
+
+        STD     <RAY_perp_dist ; Store perp dist from sdist_y
+        LDA     ,U
         LSLA
         INCA
         STA     <RAY_color
-        LDD     <RAY_sdist_y
-        STD     <RAY_perp_dist ; Store perp dist from sdist_y
         LDA     #1
         STA     <RAY_side     ; Hit EW wall
 
